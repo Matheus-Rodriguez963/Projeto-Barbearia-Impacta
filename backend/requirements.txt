@@ -1,0 +1,14 @@
+# Barbearia Dom Alfredo - dependencias do backend
+# instalar com: pip install -r requirements.txt
+
+fastapi==0.121.2            # framework da API
+uvicorn[standard]==0.41.0   # servidor que roda a API
+sqlalchemy==2.0.44          # ORM (cria as tabelas e faz as consultas)
+psycopg[binary]==3.2.12     # driver do PostgreSQL (versao 3, ja vem compilado)
+pydantic[email]==2.12.4     # validacao dos dados que entram e saem da API
+pydantic-settings==2.12.0   # le as configuracoes do arquivo .env
+python-dotenv==1.2.1        # carrega o .env
+
+# so para os testes
+pytest==9.0.1
+httpx==0.28.1               # cliente HTTP que o TestClient do FastAPI usa
