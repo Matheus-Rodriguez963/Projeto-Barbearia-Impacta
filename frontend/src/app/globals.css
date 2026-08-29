@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* Paleta da Barbearia Dom Alfredo — as mesmas cores do protótipo em HTML/CSS.
+   Declarando aqui dentro do @theme, o Tailwind cria as classes sozinho
+   (bg-mogno, text-latao, border-terracota, font-titulo...). */
+@theme {
+  --color-mogno-escuro: #38130a;
+  --color-mogno: #4a1b10;
+  --color-mogno-claro: #5e2312;
+  --color-terracota: #7b2e17;
+  --color-terracota-claro: #95391d;
+  --color-latao: #c9a227;
+  --color-latao-claro: #e0be6a;
+  --color-oliva: #5a6236;
+  --color-papel: #f2eadc;
+  --color-papel-claro: #fffdf7;
+  --color-tinta: #3a1409;
+  --color-tinta-forte: #2e1207;
+  --color-tinta-media: #7c6752;
+  --color-tinta-fraca: #8b775f;
+  --color-rotulo: #8a6a4f;
+  --color-erro: #a3341b;
+  --color-creme: #f6ead2;
+  --color-fundo: #17110e;
+
+  /* as três fontes vêm do next/font lá no layout.tsx */
+  --font-titulo: var(--fonte-bodoni), Georgia, serif;
+  --font-rotulo: var(--fonte-oswald), "Arial Narrow", sans-serif;
+  --font-texto: var(--fonte-karla), system-ui, sans-serif;
+}
+
+body {
+  /* o sistema preenche a janela toda, então o papel é o fundo que aparece */
+  background-color: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-texto);
+}
+
+/* O textinho da madeira do menu lateral. Não dá pra fazer com classe do Tailwind,
+   então deixei essa uma regra na mão mesmo. */
+.madeira {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.22) 0 2px,
+      rgba(255, 225, 190, 0.03) 2px 6px,
+      transparent 6px 11px
+    ),
+    linear-gradient(180deg, var(--color-mogno-claro), var(--color-mogno-escuro));
+}
+
+/* O papel levemente pautado da área de trabalho. */
+.papel-pautado {
+  background-image: repeating-linear-gradient(0deg, rgba(122, 79, 45, 0.03) 0 2px, transparent 2px 4px);
+}
+
+/* Barra de rolagem no tom da madeira. Sem isso ela fica cinza do sistema
+   e destoa de tudo. Cantos retos, igual ao resto do desenho.
+
+   Detalhe que me pegou: se eu declarar scrollbar-color, o Chrome ignora todo o
+   ::-webkit-scrollbar e desenha a barra nativa dele (com as setinhas). Por isso
+   o scrollbar-color fica isolado num @supports que só o Firefox entra. */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(74, 27, 16, 0.35);
+  /* a borda transparente + background-clip deixa uma folga dos lados,
+     senão a barra encosta na borda da área e fica grossa demais */
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-terracota);
+}
+
+/* tira as setinhas de cima e de baixo que o Chrome no Linux desenha */
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* no menu lateral, que é escuro, a barra precisa ser clara */
+.madeira::-webkit-scrollbar-thumb {
+  background-color: rgba(201, 162, 39, 0.35);
+}
+
+.madeira::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-latao);
+}
+
+/* o Firefox não tem esses pseudo-elementos, então lá eu uso as propriedades
+   oficiais. O @supports garante que o Chrome nunca entre aqui. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(74, 27, 16, 0.35) transparent;
+  }
+
+  .madeira {
+    scrollbar-color: rgba(201, 162, 39, 0.35) transparent;
+  }
+}
+
+/* Deixa a setinha do input de data com a cor certa. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.45;
+  cursor: pointer;
+}
