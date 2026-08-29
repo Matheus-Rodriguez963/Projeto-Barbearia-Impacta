@@ -1,29 +1,76 @@
 # Barbearia Dom Alfredo — Sistema de Gestão
 
 Trabalho de faculdade desenvolvido por etapas. **Esta é a Etapa 1: o cadastro de clientes
-completo**, com front-end, back-end, banco de dados e testes automatizados.
+completo** — front-end, back-end, banco de dados e testes automatizados.
 
 O sistema simula o balcão de uma barbearia: a recepcionista cadastra o cliente perguntando
-primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser completado
-depois.
+primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser
+completado depois.
+
+**Next.js 16 + TypeScript + Tailwind 4** no front · **FastAPI + SQLAlchemy 2** no back ·
+**PostgreSQL 16** no banco · **45 testes** no pytest
 
 ---
 
 ## Índice
 
-1. [O que já está pronto](#o-que-já-está-pronto)
-2. [Tecnologias usadas](#tecnologias-usadas)
-3. [O que precisa ter instalado](#o-que-precisa-ter-instalado)
-4. [Instalação rápida (1 comando)](#instalação-rápida-1-comando)
-5. [Instalação passo a passo](#instalação-passo-a-passo)
-6. [Como rodar o projeto](#como-rodar-o-projeto)
-7. [Como rodar os testes](#como-rodar-os-testes)
-8. [Estrutura das pastas](#estrutura-das-pastas)
-9. [O banco de dados](#o-banco-de-dados)
-10. [A API (endpoints)](#a-api-endpoints)
-11. [Regras de validação](#regras-de-validação)
-12. [Deu problema? (soluções)](#deu-problema-soluções)
-13. [Próximas etapas](#próximas-etapas)
+1. [Rodando em 3 passos](#rodando-em-3-passos)
+2. [O que já está pronto](#o-que-já-está-pronto)
+3. [Como o sistema é montado](#como-o-sistema-é-montado)
+4. [Tecnologias usadas](#tecnologias-usadas)
+5. [O que precisa ter instalado](#o-que-precisa-ter-instalado)
+6. [Instalação passo a passo](#instalação-passo-a-passo)
+7. [Como rodar o projeto](#como-rodar-o-projeto)
+8. [Como rodar os testes](#como-rodar-os-testes)
+9. [Decisões que eu tomei](#decisões-que-eu-tomei)
+10. [Estrutura das pastas](#estrutura-das-pastas)
+11. [O banco de dados](#o-banco-de-dados)
+12. [A API (endpoints)](#a-api-endpoints)
+13. [Regras de validação](#regras-de-validação)
+14. [Deu problema? (soluções)](#deu-problema-soluções)
+15. [Próximas etapas](#próximas-etapas)
+
+---
+
+## Rodando em 3 passos
+
+Precisa ter **Docker**, **Python 3.11+** e **Node 18+** na máquina. Se faltar algum,
+veja [O que precisa ter instalado](#o-que-precisa-ter-instalado).
+
+### 1. Instalar tudo (um comando só)
+
+**Linux / macOS:**
+
+```bash
+bash scripts/instalar.sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\instalar.ps1
+```
+
+> O `-ExecutionPolicy Bypass` é necessário porque o Windows bloqueia scripts `.ps1` por
+> padrão. Ele vale só para essa execução, não muda a configuração da máquina.
+
+O script sobe o PostgreSQL no Docker, instala as dependências do back e do front, cria os
+arquivos `.env` e cadastra 3 clientes de exemplo pra tela não abrir vazia.
+
+### 2. Ligar os dois servidores
+
+Precisa de **dois terminais abertos ao mesmo tempo**.
+
+| Terminal | Linux / macOS | Windows (PowerShell) |
+|---|---|---|
+| 1 — a API | `bash scripts/rodar-backend.sh` | `powershell -ExecutionPolicy Bypass -File scripts\rodar-backend.ps1` |
+| 2 — o site | `bash scripts/rodar-frontend.sh` | `powershell -ExecutionPolicy Bypass -File scripts\rodar-frontend.ps1` |
+
+### 3. Abrir no navegador
+
+**http://localhost:3000**
+
+Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as falhas mais comuns.
 
 ---
 
@@ -35,6 +82,35 @@ depois.
 | **Back-end** | API REST com as 6 rotas do CRUD, validação de CPF/telefone e tratamento de erros |
 | **Banco** | Tabela `clientes` criada pelo SQLAlchemy, com índices e campos únicos |
 | **Testes** | 45 testes no pytest cobrindo as validações e todas as rotas da API |
+
+---
+
+## Como o sistema é montado
+
+São três programas separados conversando entre si:
+
+```mermaid
+flowchart LR
+    U["Recepcionista<br/>no navegador"] --> F["Next.js<br/>porta 3000<br/>máscara e aviso na hora"]
+    F -->|"POST /api/clientes"| A["FastAPI<br/>porta 8000<br/>valida de novo"]
+    A -->|"SQLAlchemy"| B[("PostgreSQL<br/>porta 5435<br/>tabela clientes")]
+    A -->|"201 com a ficha salva"| F
+```
+
+Dentro do back-end, cada arquivo tem uma responsabilidade só. Uma requisição de cadastro
+passa por esta fila:
+
+```mermaid
+flowchart TD
+    R["routers/clientes.py<br/>recebe a requisição HTTP"] --> S["schemas/cliente.py<br/>valida e limpa os dados"]
+    S --> C["crud/cliente.py<br/>confere duplicados e grava"]
+    C --> M["models/cliente.py<br/>descreve a tabela"]
+    M --> D[("PostgreSQL")]
+```
+
+Separei assim por dois motivos: dá pra testar o `crud` sem subir a API, e nas próximas
+etapas é só repetir esses quatro arquivos para Barbeiros, Serviços e Agendamentos, sem
+mexer no que já funciona.
 
 ---
 
@@ -57,6 +133,9 @@ depois.
 **Banco de dados**
 - PostgreSQL 16 (rodando em Docker)
 
+Todas as versões estão travadas no `backend/requirements.txt` e no
+`frontend/package-lock.json`, então a instalação sai igual em qualquer máquina.
+
 ---
 
 ## O que precisa ter instalado
@@ -67,36 +146,15 @@ depois.
 | **Node.js** | 18 (recomendado 20+) | `node --version` |
 | **Docker** + Docker Compose | qualquer versão recente | `docker --version` |
 
-> **Não quer usar Docker?** Dá pra usar um PostgreSQL instalado direto na máquina.
-> As instruções estão em [Instalação passo a passo](#opção-b-postgresql-instalado-na-máquina).
-
----
-
-## Instalação rápida (1 comando)
-
-Se você tem Docker, Python e Node instalados, é só rodar isso na pasta do projeto:
-
-**Linux / macOS:**
-
-```bash
-bash scripts/instalar.sh
-```
-
-**Windows (PowerShell):**
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\instalar.ps1
-```
-
-> O `-ExecutionPolicy Bypass` é necessário porque o Windows bloqueia scripts `.ps1`
-> por padrão. Ele vale só para essa execução, não muda a configuração da máquina.
-
-O script sobe o banco, instala as dependências do back e do front, cria os arquivos `.env`
-e ainda cadastra 3 clientes de exemplo. Depois é só ir para [Como rodar o projeto](#como-rodar-o-projeto).
+> **Não quer usar Docker?** Dá pra usar um PostgreSQL instalado direto na máquina —
+> veja a [Opção B](#opção-b--postgresql-instalado-na-máquina) logo abaixo.
 
 ---
 
 ## Instalação passo a passo
+
+Só precisa disso se você não quiser usar o `scripts/instalar.sh` do
+[Rodando em 3 passos](#rodando-em-3-passos).
 
 ### 1. Subir o banco de dados
 
@@ -143,8 +201,6 @@ CREATE DATABASE barbearia_teste OWNER barbearia;
 
 Depois, no arquivo `backend/.env`, troque a porta **5435** por **5432**.
 
----
-
 ### 2. Instalar o back-end
 
 ```bash
@@ -171,8 +227,6 @@ Se quiser começar com alguns clientes já cadastrados:
 python popular_banco.py
 ```
 
----
-
 ### 3. Instalar o front-end
 
 ```bash
@@ -180,7 +234,7 @@ cd ../frontend
 
 npm install
 
-cp .env.local.example .env.local   # Linux / macOS
+cp .env.local.example .env.local      # Linux / macOS
 # copy .env.local.example .env.local  # Windows
 ```
 
@@ -194,7 +248,7 @@ São **dois terminais** rodando ao mesmo tempo (mais o Docker do banco em segund
 
 ```bash
 cd backend
-source .venv/bin/activate
+source .venv/bin/activate     # no Windows: .venv\Scripts\activate
 uvicorn app.main:app --reload
 ```
 
@@ -203,22 +257,6 @@ uvicorn app.main:app --reload
 ```bash
 cd frontend
 npm run dev
-```
-
-Ou, usando os atalhos:
-
-**Linux / macOS:**
-
-```bash
-bash scripts/rodar-backend.sh     # terminal 1
-bash scripts/rodar-frontend.sh    # terminal 2
-```
-
-**Windows (PowerShell):**
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\rodar-backend.ps1    # terminal 1
-powershell -ExecutionPolicy Bypass -File scripts\rodar-frontend.ps1   # terminal 2
 ```
 
 ### Endereços
@@ -246,24 +284,68 @@ pytest
 Ou pelo atalho: `bash scripts/rodar-testes.sh` (Linux/macOS) ou
 `powershell -ExecutionPolicy Bypass -File scripts\rodar-testes.ps1` (Windows).
 
-Resultado esperado: **45 passed**.
+Saída esperada:
+
+```
+tests/test_cadastro_cliente.py ..........................       [ 57%]
+tests/test_validadores.py ...................                   [100%]
+
+======================== 45 passed in 1.02s =========================
+```
+
+Para ver o nome de cada teste, `pytest -v`.
+
+### O que os 45 testes cobrem
+
+| Arquivo | Testes | O que verifica |
+|---|---|---|
+| `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
+| `test_cadastro_cliente.py` | 26 | As 6 rotas da API, os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404) |
+
+Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar batido:
+
+- CPF `111.111.111-11` tem que ser **recusado** (ele passa na conta dos dígitos, então
+  precisa de uma regra à parte).
+- Dois clientes **sem e-mail** podem coexistir, mesmo com a coluna sendo única.
+- Ao **editar**, o cliente não pode dar conflito com o próprio telefone.
+- A busca por telefone tem que funcionar **com e sem máscara**.
 
 Os testes usam o banco `barbearia_teste`, separado do banco de verdade — nada do que
 está cadastrado é apagado. Se esse banco não existir, os testes rodam sozinhos em
 SQLite na memória, então **o pytest funciona mesmo sem o Docker estar rodando**.
 
-Para ver o nome de cada teste:
+---
 
-```bash
-pytest -v
-```
+## Decisões que eu tomei
 
-O que está sendo testado:
+As escolhas do projeto que não são óbvias olhando só o código:
 
-- **`test_validadores.py`** — o cálculo dos dígitos verificadores do CPF, os DDDs válidos,
-  o nono dígito do celular e as máscaras.
-- **`test_cadastro_cliente.py`** — cadastrar, listar, buscar, editar e excluir pela API;
-  os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404).
+**Telefone e CPF são guardados só com números.**
+A máscara é coisa de tela. Guardando `11990001234` no banco, a busca funciona igual se a
+pessoa digitar com ou sem parênteses, e nunca vai existir o mesmo cliente cadastrado de
+duas formas diferentes. A API devolve os dois formatos: `telefone` e `telefone_formatado`.
+
+**A validação roda duas vezes, de propósito.**
+No navegador para avisar na hora enquanto a pessoa digita, e de novo no servidor porque
+validação de front qualquer um burla abrindo o console. A regra do CPF está escrita nos
+dois lados (`lib/mascaras.ts` e `core/validadores.py`) com o mesmo cálculo.
+
+**O erro 422 volta com o nome do campo.**
+O FastAPI devolve um formato bem detalhado por padrão; eu simplifiquei em `main.py` para
+`{campo, mensagem}`, e aí o front consegue pintar de vermelho exatamente o campo errado
+em vez de mostrar um alerta genérico.
+
+**O `crud` é separado dos `routers`.**
+O router só cuida de HTTP (status, 404, 409) e o crud só cuida de banco. Isso deixa
+testar as consultas sem subir a API.
+
+**Os testes caem para SQLite se o Postgres não estiver de pé.**
+Assim quem for corrigir o trabalho consegue rodar o `pytest` mesmo sem abrir o Docker.
+Quando o banco de teste existe, os testes rodam nele — que é o cenário de verdade.
+
+**O menu lateral só mostra o que funciona.**
+Nada de item desabilitado como prévia das próximas etapas: botão que não faz nada só
+engana quem está usando. Cada item entra quando a funcionalidade dele ficar pronta.
 
 ---
 
@@ -313,11 +395,6 @@ projeto-faculdade/
             └── tipos.ts                      # os tipos do TypeScript
 ```
 
-**A ideia da separação no back-end:** cada arquivo tem uma responsabilidade só.
-O `router` recebe a requisição, o `schema` valida, o `crud` fala com o banco e o
-`model` descreve a tabela. Assim dá pra testar cada parte separada e, nas próximas
-etapas, é só repetir o mesmo desenho para Barbeiros, Serviços e Agendamentos.
-
 ---
 
 ## O banco de dados
@@ -339,10 +416,8 @@ Tabela **`clientes`** (criada automaticamente pelo SQLAlchemy quando a API sobe)
 | `criado_em` | data e hora | preenchido pelo banco |
 | `atualizado_em` | data e hora | preenchido quando a ficha é editada |
 
-**Por que telefone e CPF ficam só com números?** Porque a máscara é coisa de tela.
-Guardando `11990001234` no banco, a busca funciona igual se a pessoa digitar com ou
-sem parênteses, e nunca vai existir o mesmo cliente cadastrado de duas formas diferentes.
-A API devolve os dois formatos: `telefone` (cru) e `telefone_formatado` (com máscara).
+O e-mail é único, mas aceita vários registros em branco: no PostgreSQL a restrição de
+único ignora valores nulos, então clientes sem e-mail não brigam entre si.
 
 Para espiar o banco por dentro:
 
@@ -419,9 +494,6 @@ O erro `422` vem com o campo e o motivo, para o front conseguir marcar o campo c
 | **Data de nascimento** | Opcional, não pode ser no futuro nem ter mais de 120 anos |
 | **Origem** | Só aceita as 4 opções dos botões da tela |
 
-As validações rodam **nos dois lados**: no navegador, para avisar na hora enquanto a
-pessoa digita, e de novo no servidor, porque validação de front qualquer um consegue burlar.
-
 ---
 
 ## Deu problema? (soluções)
@@ -442,7 +514,12 @@ O ambiente virtual não está ativo. Rode `source .venv/bin/activate` (ou
 `.venv\Scripts\activate` no Windows) antes.
 
 **A porta 3000 já está em uso**
-Rode o front em outra porta: `npm run dev -- -p 3001`.
+Rode o front em outra porta: `npm run dev -- -p 3001`. Nesse caso ajuste também o
+`CORS_ORIGINS` do `backend/.env`, senão o navegador bloqueia as chamadas.
+
+**No Windows, "execução de scripts foi desabilitada neste sistema"**
+É o bloqueio padrão do PowerShell. Use `powershell -ExecutionPolicy Bypass -File <script>`,
+como está nos comandos acima.
 
 **Cadastrei um cliente e ele não aparece na lista**
 A busca pode estar preenchida — limpe o campo de busca. Se continuar, confira no banco
@@ -460,14 +537,12 @@ cd backend && python popular_banco.py
 
 ## Próximas etapas
 
-O menu lateral já mostra o desenho completo do sistema. Os itens desligados são as
-próximas entregas:
-
 - [x] **Etapa 1 — Cadastro de clientes** (esta entrega)
 - [ ] Etapa 2 — Cadastro de barbeiros e serviços
 - [ ] Etapa 3 — Agenda e agendamentos
 - [ ] Etapa 4 — Caixa e relatórios
 - [ ] Etapa 5 — Login e controle de acesso
 
-A estrutura do back-end (`models` / `schemas` / `crud` / `routers`) foi montada pensando
+Conforme cada etapa ficar pronta, o item correspondente aparece no menu lateral. A
+estrutura do back-end (`models` / `schemas` / `crud` / `routers`) foi montada pensando
 nisso: cada etapa nova é um conjunto novo desses quatro arquivos, sem mexer no que já funciona.
