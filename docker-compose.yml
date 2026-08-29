@@ -1,0 +1,28 @@
+# Sobe só o banco de dados. O backend e o front eu rodo na mão (fica mais fácil de mostrar).
+# Usar com:  docker compose up -d
+
+services:
+  banco:
+    image: postgres:16-alpine
+    container_name: barbearia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: barbearia
+      POSTGRES_PASSWORD: barbearia
+      POSTGRES_DB: barbearia
+    ports:
+      # 5435 do lado de fora pra não brigar com um Postgres já instalado na máquina
+      - "5435:5432"
+    volumes:
+      # guarda os dados fora do container, senão some tudo quando eu derrubo
+      - dados_postgres:/var/lib/postgresql/data
+      # esse script roda uma vez e cria o banco separado que o pytest usa
+      - ./scripts/criar-banco-de-teste.sql:/docker-entrypoint-initdb.d/criar-banco-de-teste.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U barbearia -d barbearia"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dados_postgres:
