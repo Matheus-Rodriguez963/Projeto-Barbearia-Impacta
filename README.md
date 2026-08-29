@@ -12,6 +12,23 @@ completado depois.
 
 ---
 
+## As telas
+
+**Lista de clientes** — busca por nome, telefone ou CPF, com paginação:
+
+![Lista de clientes](docs/imagens/lista-de-clientes.jpg)
+
+**Cadastro de cliente** — a ficha da direita vai se preenchendo enquanto se digita:
+
+![Cadastro de cliente](docs/imagens/cadastro-de-cliente.jpg)
+
+**Validação** — o CPF é conferido pelos dígitos verificadores, então `111.111.111-11`
+não passa:
+
+![Validação do CPF](docs/imagens/validacao-do-cpf.jpg)
+
+---
+
 ## Índice
 
 1. [Rodando em 3 passos](#rodando-em-3-passos)
@@ -355,6 +372,7 @@ engana quem está usando. Cada item entra quando a funcionalidade dele ficar pro
 projeto-faculdade/
 ├── README.md
 ├── docker-compose.yml           # sobe o PostgreSQL
+├── docs/imagens/                # as telas que aparecem neste README
 ├── scripts/                     # atalhos pra instalar e rodar (.sh e .ps1)
 │
 ├── backend/
