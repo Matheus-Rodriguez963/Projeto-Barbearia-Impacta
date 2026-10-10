@@ -14,8 +14,8 @@ from fastapi.responses import JSONResponse
 from app.core.config import config
 from app.core.database import Base, engine
 from app.core.erros import RegistroDuplicado
-from app.models import Cliente  # noqa: F401 - precisa importar pro SQLAlchemy enxergar a tabela
-from app.routers import clientes
+from app.models import Barbeiro, Cliente  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
+from app.routers import barbeiros, clientes
 
 
 @asynccontextmanager
@@ -35,12 +35,12 @@ async def ciclo_de_vida(app: FastAPI):
 
 app = FastAPI(
     title="Barbearia Dom Alfredo — API",
-    description="Etapa 1 do trabalho: cadastro de clientes.",
-    version="1.0.0",
+    description="Etapa 1: cadastro de clientes · Etapa 2: cadastro de barbeiros.",
+    version="2.0.0",
     lifespan=ciclo_de_vida,
 )
 
-# sem isso o navegador barra as chamadas do Next (porta 3000) pra API (porta 8000)
+# sem isso o navegador barra as chamadas do Next (porta 3020) pra API (porta 8000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.origens_liberadas,
@@ -64,9 +64,17 @@ async def tratar_validacao(request: Request, erro: RequestValidationError):
     """Deixo o erro de validação num formato simples pro front conseguir mostrar no campo certo."""
     problemas = []
     for item in erro.errors():
-        # item["loc"] vem tipo ("body", "cpf"); eu quero só o nome do campo
-        campo = item["loc"][-1] if len(item["loc"]) > 1 else "geral"
-        problemas.append({"campo": str(campo), "mensagem": item["msg"].replace("Value error, ", "")})
+        # item["loc"] vem tipo ("body", "cpf"); eu quero só o nome do campo.
+        # em lista vem ("body", "horarios", 0, "saida"), e aí o que interessa pra tela
+        # é o campo de cima ("horarios"), por isso pego o primeiro nome depois do "body"
+        nomes = [pedaco for pedaco in item["loc"][1:] if isinstance(pedaco, str)]
+        campo = nomes[0] if nomes else "geral"
+
+        mensagem = item["msg"].replace("Value error, ", "")
+        if item["type"] == "literal_error":  # o Pydantic manda essa em inglês
+            mensagem = "opção inválida — escolha uma das opções da tela"
+
+        problemas.append({"campo": campo, "mensagem": mensagem})
 
     return JSONResponse(
         status_code=422,  # campo do formulário inválido
@@ -75,6 +83,7 @@ async def tratar_validacao(request: Request, erro: RequestValidationError):
 
 
 app.include_router(clientes.roteador)
+app.include_router(barbeiros.roteador)
 
 
 @app.get("/", tags=["Status"], summary="Só pra saber se a API está de pé")
