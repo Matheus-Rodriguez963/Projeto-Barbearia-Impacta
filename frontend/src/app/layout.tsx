@@ -19,8 +19,11 @@ export const metadata: Metadata = {
 
 export default function LayoutRaiz({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body className={`${bodoni.variable} ${oswald.variable} ${karla.variable}`}>
+    // as variáveis das fontes ficam no <html> e não no <body>: o tema do Tailwind
+    // (--font-titulo etc.) é montado no <html>, e se a fonte só existisse no <body>
+    // a conta dava inválida e o navegador caía na fonte do sistema
+    <html lang="pt-BR" className={`${bodoni.variable} ${oswald.variable} ${karla.variable}`}>
+      <body>
         {/* o sistema ocupa a tela inteira: h-dvh é a altura real da janela,
             e o que passa disso rola dentro de cada área, não na página */}
         <div className="flex h-dvh w-full overflow-hidden">
