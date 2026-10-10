@@ -82,3 +82,29 @@ def ficha_valida():
         "origem": "Indicação",
         "observacoes": "Máquina 2 nas laterais.",
     }
+
+
+@pytest.fixture
+def barbeiro_valido():
+    """Ficha completa de barbeiro, no mesmo espírito da ficha_valida do cliente."""
+    return {
+        "nome": "Sebastião Ramos",
+        "apelido": "Tião da Navalha",
+        "telefone": "(11) 98123-4567",
+        "cpf": "529.982.247-25",
+        "email": "tiao@domalfredo.com",
+        "data_admissao": "2019-03-01",
+        "especialidades": ["Barba na navalha", "Toalha quente", "Corte clássico"],
+        "comissao": 45,
+        "intervalo": 10,
+        "cor_agenda": "oliva",
+        # terça a sexta das 9 às 19, sábado fecha mais cedo
+        "horarios": [
+            {"dia": "ter", "entrada": "09:00", "saida": "19:00"},
+            {"dia": "qua", "entrada": "09:00", "saida": "19:00"},
+            {"dia": "qui", "entrada": "09:00", "saida": "19:00"},
+            {"dia": "sex", "entrada": "09:00", "saida": "19:00"},
+            {"dia": "sab", "entrada": "09:00", "saida": "17:00"},
+        ],
+        "observacoes": "Só ele faz a barba na toalha quente.",
+    }
