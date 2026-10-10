@@ -30,4 +30,4 @@ Write-Host ""
 Write-Host "Pronto! Agora abra dois terminais:" -ForegroundColor Green
 Write-Host "  Terminal 1:  powershell -ExecutionPolicy Bypass -File scripts\rodar-backend.ps1"
 Write-Host "  Terminal 2:  powershell -ExecutionPolicy Bypass -File scripts\rodar-frontend.ps1"
-Write-Host "E acesse http://localhost:3000"
+Write-Host "E acesse http://localhost:3020"

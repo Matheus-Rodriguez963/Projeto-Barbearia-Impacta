@@ -1,4 +1,4 @@
-﻿# Sobe o site do Next.js em http://localhost:3000.
+﻿# Sobe o site do Next.js em http://localhost:3020.
 # Versao para Windows:
 #   powershell -ExecutionPolicy Bypass -File scripts\rodar-frontend.ps1
 

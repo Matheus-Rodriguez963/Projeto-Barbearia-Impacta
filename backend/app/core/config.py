@@ -12,7 +12,7 @@ class Config(BaseSettings):
     TEST_DATABASE_URL: str = "postgresql+psycopg://barbearia:barbearia@localhost:5432/barbearia_teste"
 
     # endereços do front que podem chamar a API (senão o navegador bloqueia por CORS)
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    CORS_ORIGINS: str = "http://localhost:3020,http://127.0.0.1:3020"
 
     @property
     def origens_liberadas(self) -> list[str]:
