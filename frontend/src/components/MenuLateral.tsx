@@ -6,10 +6,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Só entra aqui o que já funciona de verdade. Barbeiros, Serviços, Agenda e Caixa
+// Só entra aqui o que já funciona de verdade. Serviços, Agenda e Caixa
 // aparecem quando as próximas etapas ficarem prontas — botão que não faz nada
-// só engana quem está usando.
-const ITENS = [{ nome: "Clientes", caminho: "/clientes" }];
+// só engana quem está usando. Barbeiros entrou na etapa 2.
+const ITENS = [
+  { nome: "Clientes", caminho: "/clientes" },
+  { nome: "Barbeiros", caminho: "/barbeiros" },
+];
 
 export default function MenuLateral() {
   const caminhoAtual = usePathname();
