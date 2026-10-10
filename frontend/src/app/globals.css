@@ -12,6 +12,7 @@
   --color-latao: #c9a227;
   --color-latao-claro: #e0be6a;
   --color-oliva: #5a6236;
+  --color-petroleo: #2f3a4a; /* etapa 2: a quarta cor que dá pra escolher pra agenda do barbeiro */
   --color-papel: #f2eadc;
   --color-papel-claro: #fffdf7;
   --color-tinta: #3a1409;
@@ -47,6 +48,12 @@ body {
       transparent 6px 11px
     ),
     linear-gradient(180deg, var(--color-mogno-claro), var(--color-mogno-escuro));
+}
+
+/* Etapa 2: a moldura dourada da foto do barbeiro. O degradê imita o reflexo do latão,
+   e com classe do Tailwind ficaria uma linha enorme e ilegível. */
+.moldura-latao {
+  background-image: linear-gradient(145deg, #e6c77e 0%, #a87f2c 30%, #f2dca0 55%, #8e6822 100%);
 }
 
 /* O papel levemente pautado da área de trabalho. */

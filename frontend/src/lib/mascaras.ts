@@ -76,3 +76,36 @@ export function dataBonita(data: string | null): string {
   const [ano, mes, dia] = data.slice(0, 10).split("-");
   return `${dia}/${mes}/${ano}`;
 }
+
+/** "09:00:00" -> "09:00" (a API manda com segundos, o input de hora quer sem). */
+export function horaCurta(hora: string | null): string {
+  return (hora ?? "").slice(0, 5);
+}
+
+/** "2019-08" -> "ago/2019" */
+export function mesEAno(valor: string): string {
+  if (!valor) return "—";
+  const [ano, mes] = valor.split("-");
+  const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  return `${meses[Number(mes) - 1]}/${ano}`;
+}
+
+/** As checagens que o cliente e o barbeiro têm iguais. Devolve {campo: mensagem}. */
+export function conferirIdentificacao(dados: { nome: string; telefone: string; cpf: string; email: string }) {
+  const problemas: Record<string, string> = {};
+
+  if (dados.nome.trim().split(/\s+/).filter(Boolean).length < 2) {
+    problemas.nome = "Informe o nome completo (nome e sobrenome).";
+  }
+  if (!telefoneValido(dados.telefone)) {
+    problemas.telefone = "Telefone inválido. Ex: (11) 99000-1234";
+  }
+  if (!cpfValido(dados.cpf)) {
+    problemas.cpf = "CPF inválido. Confira os números.";
+  }
+  if (dados.email.trim() && !dados.email.includes("@")) {
+    problemas.email = "E-mail inválido.";
+  }
+
+  return problemas;
+}
