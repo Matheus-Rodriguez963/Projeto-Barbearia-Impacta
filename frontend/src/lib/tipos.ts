@@ -5,8 +5,6 @@ export type Origem = "Indicação" | "Passou na porta" | "Instagram" | "Google";
 
 export const ORIGENS: Origem[] = ["Indicação", "Passou na porta", "Instagram", "Google"];
 
-export const BARBEIROS = ["Sem preferência", "Seu Alfredo", "Tião da Navalha", "Marcos", "Beto"];
-
 export interface Cliente {
   id: number;
   nome: string;
@@ -46,4 +44,93 @@ export interface ListaDeClientes {
 export interface ErroDeCampo {
   campo: string;
   mensagem: string;
+}
+
+// ---------------------------------------------------------------- etapa 2: barbeiros
+
+// mesma lista e mesma ordem do schemas/barbeiro.py
+export const ESPECIALIDADES = [
+  "Corte clássico",
+  "Degradê",
+  "Barba na navalha",
+  "Toalha quente",
+  "Pigmentação",
+  "Infantil",
+] as const;
+
+export type Especialidade = (typeof ESPECIALIDADES)[number];
+
+// a API guarda a sigla; a tela usa o nome na tabela de horários e a letra no cartão
+export const DIAS_DA_SEMANA = [
+  { sigla: "seg", nome: "Segunda", letra: "S" },
+  { sigla: "ter", nome: "Terça", letra: "T" },
+  { sigla: "qua", nome: "Quarta", letra: "Q" },
+  { sigla: "qui", nome: "Quinta", letra: "Q" },
+  { sigla: "sex", nome: "Sexta", letra: "S" },
+  { sigla: "sab", nome: "Sábado", letra: "S" },
+  { sigla: "dom", nome: "Domingo", letra: "D" },
+] as const;
+
+export type DiaDaSemana = (typeof DIAS_DA_SEMANA)[number]["sigla"];
+
+// as classes têm que estar escritas por inteiro, senão o Tailwind não gera a cor
+export const CORES_DA_AGENDA = [
+  { chave: "terracota", nome: "Terracota", fundo: "bg-terracota" },
+  { chave: "oliva", nome: "Oliva", fundo: "bg-oliva" },
+  { chave: "latao", nome: "Latão", fundo: "bg-latao" },
+  { chave: "petroleo", nome: "Azul-petróleo", fundo: "bg-petroleo" },
+] as const;
+
+export type CorDaAgenda = (typeof CORES_DA_AGENDA)[number]["chave"];
+
+export const INTERVALOS = [0, 5, 10, 15] as const;
+
+export interface HorarioDoDia {
+  dia: DiaDaSemana;
+  entrada: string; // a API devolve "09:00:00" e aceita "09:00"
+  saida: string;
+}
+
+export interface Barbeiro {
+  id: number;
+  nome: string;
+  apelido: string | null;
+  telefone: string;
+  cpf: string;
+  email: string | null;
+  data_admissao: string; // "2019-03-01" — a tela só usa mês e ano
+  especialidades: Especialidade[];
+  comissao: number;
+  intervalo: number;
+  cor_agenda: CorDaAgenda;
+  horarios: HorarioDoDia[]; // só os dias trabalhados; o que não está aqui é folga
+  ativo: boolean; // "disponível para agendamento"
+  observacoes: string | null;
+  criado_em: string | null;
+  atualizado_em: string | null;
+  telefone_formatado: string;
+  cpf_formatado: string;
+  nome_de_chamada: string; // apelido, ou o primeiro nome se não tiver apelido
+  foto_url: string | null; // caminho na API, ex: "/api/barbeiros/3/foto?v=1760000000"
+}
+
+export interface DadosDoBarbeiro {
+  nome: string;
+  telefone: string;
+  cpf: string;
+  apelido?: string | null;
+  email?: string | null;
+  data_admissao?: string;
+  especialidades: Especialidade[];
+  comissao?: number;
+  intervalo?: number;
+  cor_agenda?: CorDaAgenda;
+  horarios: HorarioDoDia[];
+  ativo?: boolean;
+  observacoes?: string | null;
+}
+
+export interface ListaDeBarbeiros {
+  total: number;
+  itens: Barbeiro[];
 }
