@@ -1,14 +1,15 @@
 # Barbearia Dom Alfredo — Sistema de Gestão
 
-Trabalho de faculdade desenvolvido por etapas. **Esta é a Etapa 1: o cadastro de clientes
-completo** — front-end, back-end, banco de dados e testes automatizados.
+Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 2: o cadastro de
+barbeiros**, somando com a Etapa 1 (cadastro de clientes) — as duas completas com front-end,
+back-end, banco de dados e testes automatizados.
 
 O sistema simula o balcão de uma barbearia: a recepcionista cadastra o cliente perguntando
 primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser
 completado depois.
 
 **Next.js 16 + TypeScript + Tailwind 4** no front · **FastAPI + SQLAlchemy 2** no back ·
-**PostgreSQL 16** no banco · **45 testes** no pytest
+**PostgreSQL 16** no banco · **80 testes** no pytest
 
 ---
 
@@ -26,6 +27,16 @@ completado depois.
 não passa:
 
 ![Validação do CPF](docs/imagens/validacao-do-cpf.jpg)
+
+**Equipe de barbeiros** — com a foto, a cor de cada um na agenda e o horário da semana
+(quando um dia foge do padrão, ele aparece embaixo):
+
+![Lista de barbeiros](docs/imagens/lista-de-barbeiros.jpg)
+
+**Cadastro de barbeiro** — cada dia tem o próprio horário, e o cartão da direita mostra como
+o cliente vai ver o barbeiro:
+
+![Cadastro de barbeiro](docs/imagens/cadastro-de-barbeiro.jpg)
 
 ---
 
@@ -45,7 +56,6 @@ não passa:
 12. [A API (endpoints)](#a-api-endpoints)
 13. [Regras de validação](#regras-de-validação)
 14. [Deu problema? (soluções)](#deu-problema-soluções)
-15. [Próximas etapas](#próximas-etapas)
 
 ---
 
@@ -72,7 +82,7 @@ powershell -ExecutionPolicy Bypass -File scripts\instalar.ps1
 > padrão. Ele vale só para essa execução, não muda a configuração da máquina.
 
 O script sobe o PostgreSQL no Docker, instala as dependências do back e do front, cria os
-arquivos `.env` e cadastra 3 clientes de exemplo pra tela não abrir vazia.
+arquivos `.env` e cadastra 3 clientes e 4 barbeiros de exemplo pra tela não abrir vazia.
 
 ### 2. Ligar os dois servidores
 
@@ -85,7 +95,11 @@ Precisa de **dois terminais abertos ao mesmo tempo**.
 
 ### 3. Abrir no navegador
 
-**http://localhost:3000**
+**http://localhost:3020**
+
+> **Por que a 3020 e não a 3000 (o padrão do Next)?** Na minha máquina a 3000 e a 3010 já
+> estavam ocupadas por outros projetos, então fixei a 3020 no `package.json`. Se quiser
+> trocar, veja [A porta 3020 já está em uso](#a-porta-3020-já-está-em-uso).
 
 Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as falhas mais comuns.
 
@@ -95,10 +109,54 @@ Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as f
 
 | Camada | Entrega |
 |---|---|
-| **Front-end** | Tela de cadastro, listagem com busca e paginação, edição e exclusão de clientes |
-| **Back-end** | API REST com as 6 rotas do CRUD, validação de CPF/telefone e tratamento de erros |
-| **Banco** | Tabela `clientes` criada pelo SQLAlchemy, com índices e campos únicos |
-| **Testes** | 45 testes no pytest cobrindo as validações e todas as rotas da API |
+| **Front-end** | Clientes e barbeiros: cadastro, listagem com busca e paginação, edição e exclusão |
+| **Back-end** | API REST com o CRUD de clientes (6 rotas) e de barbeiros (8 rotas, com a foto), validações e tratamento de erros |
+| **Banco** | Tabelas `clientes`, `barbeiros` e `horarios_barbeiro` criadas pelo SQLAlchemy |
+| **Testes** | 80 testes no pytest cobrindo as validações e todas as rotas da API |
+
+### Etapa 2 — o que o cadastro de barbeiro tem
+
+- **Foto de perfil:** clica na moldura dourada e escolhe a foto. O navegador recorta no
+  quadrado e diminui antes de enviar, e a foto fica guardada no próprio banco.
+- **Dados pessoais:** nome, nome na cadeira (o nome que o cliente vê), telefone, e-mail, CPF
+  e "na casa desde" (mês e ano).
+- **Ofício:** especialidades, comissão, intervalo entre atendimentos e a cor dele na agenda.
+- **Dias e horários:** cada dia da semana tem o próprio horário (o sábado pode fechar mais
+  cedo); dia desmarcado é folga.
+- **Como o cliente vê:** o cartão da direita mostra, enquanto se digita, como o barbeiro vai
+  aparecer para o cliente.
+- **Disponível para agendamento:** chave para desligar em férias ou afastamento, sem apagar
+  o cadastro.
+- **Ligação com a Etapa 1:** o campo "barbeiro preferido" da ficha do cliente agora lista a
+  equipe cadastrada (só quem está disponível), em vez de uma lista fixa no código.
+
+### O que mudou na tela do cliente durante a Etapa 2
+
+- **As fontes voltaram a aparecer.** Os títulos estavam saindo com a fonte do
+  sistema em vez da Bodoni. O motivo: o `next/font` declarava as fontes no `<body>`, mas o
+  tema do Tailwind é montado no `<html>`, um nível acima, onde elas ainda não existiam. Passei
+  as fontes para o `<html>` no `layout.tsx`.
+- **Acabamento:** acertei espaçamentos, a altura dos campos (45px) e a ficha da direita.
+
+### Arrumação do código
+
+Antes de fechar a etapa, tirei o que estava repetido entre cliente e barbeiro, pra próxima
+etapa (serviços) já nascer em cima de peças prontas:
+
+| Onde | O que era repetido | Virou |
+|---|---|---|
+| `schemas/` | as validações de nome, telefone, CPF e texto | `schemas/regras.py`, usado pelos dois |
+| `crud/` | conferir duplicados, buscar e paginar | `crud/comum.py`, usado pelos dois |
+| formulários | rodapé com Excluir/Cancelar/Salvar | `RodapeDoFormulario.tsx` |
+| formulários | tela de "deu certo" | `Confirmacao.tsx` |
+| formulários | botões de marcar e o select com setinha | `Opcao.tsx` e `Seletor` (em `Campo.tsx`) |
+| formulários | dados, erros por campo e aviso do rodapé | `lib/useFormulario.ts` |
+| formulários | ler o erro que a API devolve | `lerErroDoFormulario` (em `lib/api.ts`) |
+| listas | anterior / próxima | `Paginacao.tsx` |
+
+O formulário do barbeiro, que tinha passado de 700 linhas, foi dividido em partes com uma
+responsabilidade cada: a foto (`EscolherFoto.tsx`), a tabela de horários (`JornadaSemanal.tsx`)
+e as contas da semana (`lib/semana.ts`).
 
 ---
 
@@ -108,9 +166,9 @@ São três programas separados conversando entre si:
 
 ```mermaid
 flowchart LR
-    U["Recepcionista<br/>no navegador"] --> F["Next.js<br/>porta 3000<br/>máscara e aviso na hora"]
+    U["Recepcionista<br/>no navegador"] --> F["Next.js<br/>porta 3020<br/>máscara e aviso na hora"]
     F -->|"POST /api/clientes"| A["FastAPI<br/>porta 8000<br/>valida de novo"]
-    A -->|"SQLAlchemy"| B[("PostgreSQL<br/>porta 5435<br/>tabela clientes")]
+    A -->|"SQLAlchemy"| B[("PostgreSQL<br/>porta 5435<br/>clientes e barbeiros")]
     A -->|"201 com a ficha salva"| F
 ```
 
@@ -125,9 +183,9 @@ flowchart TD
     M --> D[("PostgreSQL")]
 ```
 
-Separei assim por dois motivos: dá pra testar o `crud` sem subir a API, e nas próximas
-etapas é só repetir esses quatro arquivos para Barbeiros, Serviços e Agendamentos, sem
-mexer no que já funciona.
+Separei assim por dois motivos: dá pra testar o `crud` sem subir a API, e cada etapa nova
+é só repetir esses quatro arquivos. O barbeiro (etapa 2) seguiu exatamente esse caminho, e o
+que ficou igual nos dois foi pra `schemas/regras.py` e `crud/comum.py`.
 
 ---
 
@@ -280,8 +338,10 @@ npm run dev
 
 | O quê | Endereço |
 |---|---|
-| **O sistema (é aqui que se usa)** | http://localhost:3000 |
-| Cadastro de cliente | http://localhost:3000/clientes/novo |
+| **O sistema (é aqui que se usa)** | http://localhost:3020 |
+| Cadastro de cliente | http://localhost:3020/clientes/novo |
+| Equipe de barbeiros | http://localhost:3020/barbeiros |
+| Cadastro de barbeiro | http://localhost:3020/barbeiros/novo |
 | API | http://localhost:8000 |
 | **Documentação da API (Swagger)** | http://localhost:8000/docs |
 
@@ -304,20 +364,22 @@ Ou pelo atalho: `bash scripts/rodar-testes.sh` (Linux/macOS) ou
 Saída esperada:
 
 ```
-tests/test_cadastro_cliente.py ..........................       [ 57%]
-tests/test_validadores.py ...................                   [100%]
+tests/test_cadastro_barbeiro.py ...................................  [ 43%]
+tests/test_cadastro_cliente.py ..........................           [ 76%]
+tests/test_validadores.py ...................                      [100%]
 
-======================== 45 passed in 1.02s =========================
+======================== 80 passed in 5.51s =========================
 ```
 
 Para ver o nome de cada teste, `pytest -v`.
 
-### O que os 45 testes cobrem
+### O que os 80 testes cobrem
 
 | Arquivo | Testes | O que verifica |
 |---|---|---|
 | `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
 | `test_cadastro_cliente.py` | 26 | As 6 rotas da API, os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404) |
+| `test_cadastro_barbeiro.py` | 35 | As 8 rotas de barbeiro, o horário de cada dia, as opções de ofício, os duplicados, se os horários somem junto com o barbeiro e o envio da foto (tipo e tamanho) |
 
 Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar batido:
 
@@ -326,6 +388,11 @@ Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar b
 - Dois clientes **sem e-mail** podem coexistir, mesmo com a coluna sendo única.
 - Ao **editar**, o cliente não pode dar conflito com o próprio telefone.
 - A busca por telefone tem que funcionar **com e sem máscara**.
+- No barbeiro, **saída antes da entrada** é recusada e a mensagem diz em qual dia foi.
+- Editar a semana de 5 dias para 1 tem que **apagar as 4 linhas** que sobraram no banco.
+- Salvar a ficha do barbeiro **com os mesmos dias de novo** não pode dar conflito — esse
+  teste pegou um erro de verdade: o SQLAlchemy tentava gravar a terça nova antes de apagar
+  a velha (a correção está comentada em `crud/barbeiro.py`).
 
 Os testes usam o banco `barbearia_teste`, separado do banco de verdade — nada do que
 está cadastrado é apagado. Se esse banco não existir, os testes rodam sozinhos em
@@ -360,6 +427,27 @@ testar as consultas sem subir a API.
 Assim quem for corrigir o trabalho consegue rodar o `pytest` mesmo sem abrir o Docker.
 Quando o banco de teste existe, os testes rodam nele — que é o cenário de verdade.
 
+**Os horários do barbeiro ficam numa tabela própria (`horarios_barbeiro`).**
+Cada dia pode ter um horário diferente, então uma linha por dia trabalhado. Pensei em guardar
+tudo num campo JSON, mas na etapa da agenda vou precisar perguntar "quem trabalha quinta às
+15h?", e com tabela isso é um `SELECT` simples. Dia sem linha é folga.
+
+**Barbeiro não precisa ser apagado pra sair da agenda.**
+A chave "Disponível para agendamento" desliga o barbeiro (férias, afastamento ou quem saiu da
+casa) sem perder a ficha. Quando a agenda existir, os atendimentos antigos dele continuam
+apontando pra um cadastro que existe.
+
+**A foto do barbeiro fica guardada no banco, não numa pasta.**
+Com pasta eu teria que configurar o caminho em cada máquina e lembrar de copiar a pasta junto
+com o backup. No banco, o backup do Postgres já leva as fotos. Pra não pesar, o navegador
+recorta e reduz a foto pra 480x480 antes de enviar (uns 60 KB), e a listagem não carrega os
+bytes — só o endereço da foto, que é buscada à parte.
+
+**O "barbeiro preferido" do cliente vem da equipe cadastrada.**
+Na etapa 1 era uma lista fixa no código. Agora o select busca os barbeiros disponíveis na API.
+Se o cliente tinha um barbeiro que saiu, o nome continua aparecendo na ficha dele, pra
+preferência não mudar sem a recepção perceber.
+
 **O menu lateral só mostra o que funciona.**
 Nada de item desabilitado como prévia das próximas etapas: botão que não faz nada só
 engana quem está usando. Cada item entra quando a funcionalidade dele ficar pronta.
@@ -379,7 +467,7 @@ projeto-faculdade/
 │   ├── requirements.txt         # dependências do Python
 │   ├── .env.example             # modelo das configurações
 │   ├── pytest.ini
-│   ├── popular_banco.py         # cadastra clientes de exemplo
+│   ├── popular_banco.py         # cadastra clientes e barbeiros de exemplo
 │   ├── app/
 │   │   ├── main.py              # onde a API começa (CORS, erros, rotas)
 │   │   ├── core/
@@ -387,10 +475,20 @@ projeto-faculdade/
 │   │   │   ├── database.py      # conexão com o PostgreSQL
 │   │   │   ├── validadores.py   # regras de CPF e telefone
 │   │   │   └── erros.py
-│   │   ├── models/cliente.py    # a tabela do banco (SQLAlchemy)
-│   │   ├── schemas/cliente.py   # o que entra e sai da API (Pydantic)
-│   │   ├── crud/cliente.py      # as consultas no banco
-│   │   └── routers/clientes.py  # as rotas HTTP
+│   │   ├── models/              # as tabelas do banco (SQLAlchemy)
+│   │   │   ├── cliente.py
+│   │   │   └── barbeiro.py      # barbeiros + horarios_barbeiro
+│   │   ├── schemas/             # o que entra e sai da API (Pydantic)
+│   │   │   ├── regras.py        # validações que cliente e barbeiro têm iguais
+│   │   │   ├── cliente.py
+│   │   │   └── barbeiro.py
+│   │   ├── crud/                # as consultas no banco
+│   │   │   ├── comum.py         # duplicados, busca e paginação dos dois
+│   │   │   ├── cliente.py
+│   │   │   └── barbeiro.py
+│   │   └── routers/             # as rotas HTTP
+│   │       ├── clientes.py
+│   │       └── barbeiros.py
 │   └── tests/                   # os testes do pytest
 │
 └── frontend/
@@ -398,18 +496,31 @@ projeto-faculdade/
         ├── app/
         │   ├── layout.tsx                    # moldura: menu lateral + área de trabalho
         │   ├── globals.css                   # a paleta da barbearia no Tailwind
-        │   └── clientes/
-        │       ├── page.tsx                  # lista de clientes
+        │   ├── clientes/
+        │   │   ├── page.tsx                  # lista de clientes
+        │   │   ├── novo/page.tsx             # cadastro
+        │   │   └── [id]/editar/page.tsx      # edição
+        │   └── barbeiros/
+        │       ├── page.tsx                  # a equipe (filtro "na agenda / fora da agenda")
         │       ├── novo/page.tsx             # cadastro
         │       └── [id]/editar/page.tsx      # edição
         ├── components/
-        │   ├── FormularioCliente.tsx         # o formulário (serve pra criar e editar)
+        │   ├── FormularioCliente.tsx         # o formulário do cliente (cria e edita)
         │   ├── FichaResumo.tsx               # o cartão que se preenche enquanto digita
+        │   ├── FormularioBarbeiro.tsx        # o formulário do barbeiro (cria e edita)
+        │   ├── EscolherFoto.tsx              # a moldura da foto de perfil
+        │   ├── JornadaSemanal.tsx            # a tabela de dias e horários
+        │   ├── FichaBarbeiro.tsx             # "como o cliente vê" + disponível para agendamento
+        │   ├── Retrato.tsx                   # a foto na moldura (cartão e lista)
+        │   ├── RodapeDoFormulario.tsx / Confirmacao.tsx / Opcao.tsx / Paginacao.tsx
         │   ├── MenuLateral.tsx
-        │   ├── Topo.tsx / Secao.tsx / Campo.tsx / Botao.tsx
+        │   └── Topo.tsx / Secao.tsx / Campo.tsx / Botao.tsx
         └── lib/
             ├── api.ts                        # todas as chamadas ao FastAPI
             ├── mascaras.ts                   # máscaras e validações no navegador
+            ├── useFormulario.ts              # dados, erros e aviso de um formulário
+            ├── semana.ts                     # as contas da semana de trabalho
+            ├── foto.ts                       # recorta e reduz a foto do barbeiro antes do envio
             └── tipos.ts                      # os tipos do TypeScript
 ```
 
@@ -437,6 +548,39 @@ Tabela **`clientes`** (criada automaticamente pelo SQLAlchemy quando a API sobe)
 O e-mail é único, mas aceita vários registros em branco: no PostgreSQL a restrição de
 único ignora valores nulos, então clientes sem e-mail não brigam entre si.
 
+Tabela **`barbeiros`** (etapa 2):
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária, automático |
+| `nome` | texto (120) | obrigatório, com índice |
+| `apelido` | texto (60) | opcional — o "nome na cadeira", que é o que o cliente vê |
+| `telefone` | texto (11) | **obrigatório e único** — só números |
+| `cpf` | texto (11) | **obrigatório e único** — só números |
+| `email` | texto (120) | opcional, mas único quando preenchido |
+| `data_admissao` | data | "na casa desde": a tela pede mês e ano e grava o dia 1. Sem valor, a API usa hoje |
+| `foto` | binário | a foto de perfil (JPEG já reduzido pelo navegador), opcional |
+| `foto_tipo` | texto (30) | image/jpeg, image/png ou image/webp |
+| `foto_atualizada_em` | data e hora | quando a foto mudou — também evita o navegador mostrar a foto velha |
+| `especialidades` | JSON | lista com pelo menos uma das 6 opções da tela |
+| `comissao` | inteiro | de 0 a 100 (%), padrão 40 |
+| `intervalo` | inteiro | minutos entre atendimentos: 0 (nenhum), 5, 10 ou 15 |
+| `cor_agenda` | texto (20) | terracota / oliva / latao / petroleo |
+| `ativo` | sim/não | "disponível para agendamento", com índice |
+| `observacoes` | texto longo | opcional |
+| `criado_em` / `atualizado_em` | data e hora | preenchidos pelo banco |
+
+Tabela **`horarios_barbeiro`** — uma linha por dia trabalhado:
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária |
+| `barbeiro_id` | inteiro | chave estrangeira para `barbeiros` (apaga junto com o barbeiro) |
+| `dia` | texto (3) | seg, ter, qua, qui, sex, sab ou dom |
+| `entrada` / `saida` | hora | a saída tem que ser depois da entrada |
+
+O par (`barbeiro_id`, `dia`) é único: o mesmo barbeiro não tem duas linhas pra terça.
+
 Para espiar o banco por dentro:
 
 ```bash
@@ -446,6 +590,8 @@ docker exec -it barbearia-postgres psql -U barbearia -d barbearia
 ```sql
 \dt                      -- lista as tabelas
 SELECT * FROM clientes;  -- mostra os cadastros
+SELECT b.nome, h.dia, h.entrada, h.saida
+  FROM horarios_barbeiro h JOIN barbeiros b ON b.id = h.barbeiro_id;  -- a escala da equipe
 \q                       -- sai
 ```
 
@@ -464,6 +610,15 @@ Base: `http://localhost:8000`
 | `PUT` | `/api/clientes/{id}` | Edita a ficha (só os campos enviados) |
 | `DELETE` | `/api/clientes/{id}` | Exclui o cadastro |
 
+| `POST` | `/api/barbeiros` | Cadastra um barbeiro novo |
+| `GET` | `/api/barbeiros` | Lista a equipe (`?busca=`, `?ativo=true`, `?pagina=`, `?tamanho=`) |
+| `GET` | `/api/barbeiros/{id}` | Abre a ficha do barbeiro, com os horários |
+| `PUT` | `/api/barbeiros/{id}` | Edita a ficha (se mandar `horarios`, a semana inteira é trocada) |
+| `DELETE` | `/api/barbeiros/{id}` | Exclui o cadastro e os horários dele |
+| `PUT` | `/api/barbeiros/{id}/foto` | Envia ou troca a foto (`multipart/form-data`, campo `foto`, até 2 MB) |
+| `GET` | `/api/barbeiros/{id}/foto` | Devolve a imagem — é o endereço que vai na tela |
+| `DELETE` | `/api/barbeiros/{id}/foto` | Tira a foto |
+
 ### Exemplo de cadastro
 
 ```bash
@@ -476,6 +631,27 @@ curl -X POST http://localhost:8000/api/clientes \
     "email": "pablo@email.com",
     "barbeiro_preferido": "Seu Alfredo",
     "origem": "Indicação"
+  }'
+```
+
+Barbeiro:
+
+```bash
+curl -X POST http://localhost:8000/api/barbeiros \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Sebastião Ramos",
+    "apelido": "Tião da Navalha",
+    "telefone": "(11) 98123-4567",
+    "cpf": "853.513.468-93",
+    "especialidades": ["Barba na navalha", "Toalha quente"],
+    "comissao": 45,
+    "intervalo": 5,
+    "cor_agenda": "oliva",
+    "horarios": [
+      {"dia": "ter", "entrada": "09:00", "saida": "19:00"},
+      {"dia": "sab", "entrada": "09:00", "saida": "17:00"}
+    ]
   }'
 ```
 
@@ -512,6 +688,17 @@ O erro `422` vem com o campo e o motivo, para o front conseguir marcar o campo c
 | **Data de nascimento** | Opcional, não pode ser no futuro nem ter mais de 120 anos |
 | **Origem** | Só aceita as 4 opções dos botões da tela |
 
+E no barbeiro (nome, telefone, CPF e e-mail seguem as mesmas regras do cliente):
+
+| Campo | Regra |
+|---|---|
+| **Na casa desde** | Opcional (em branco = mês atual), não pode ser no futuro nem antes de 1962, quando a casa abriu |
+| **Foto** | Opcional. JPG, PNG ou WEBP de até 2 MB (o navegador já manda reduzida, com uns 60 KB) |
+| **Especialidades** | Pelo menos uma, só as 6 opções da tela. Repetidas são ignoradas |
+| **Comissão** | Número inteiro de 0 a 100 |
+| **Intervalo / cor** | Só as opções da tela |
+| **Dias e horários** | Pelo menos um dia de trabalho, sem dia repetido, e em cada dia a saída depois da entrada |
+
 ---
 
 ## Deu problema? (soluções)
@@ -531,9 +718,18 @@ Já tem outra coisa usando aquela porta na sua máquina. Troque a porta no
 O ambiente virtual não está ativo. Rode `source .venv/bin/activate` (ou
 `.venv\Scripts\activate` no Windows) antes.
 
-**A porta 3000 já está em uso**
-Rode o front em outra porta: `npm run dev -- -p 3001`. Nesse caso ajuste também o
-`CORS_ORIGINS` do `backend/.env`, senão o navegador bloqueia as chamadas.
+**A porta 3020 já está em uso**
+Troque o número nos scripts `dev` e `start` do `frontend/package.json` (ex: `-p 3030`) e
+ajuste também o `CORS_ORIGINS` do `backend/.env` para a mesma porta, senão o navegador
+bloqueia as chamadas para a API.
+
+**Atualizei do projeto da etapa 1 e as telas dizem que não conseguem falar com a API**
+O `backend/.env` é criado uma vez só e não é atualizado sozinho. Troque `3000` por `3020`
+no `CORS_ORIGINS` dele (ou apague o `.env` e rode o `instalar` de novo).
+
+**`Form data requires "python-multipart"` ao subir a API**
+A etapa 2 ganhou uma dependência nova (pro upload da foto). Com o ambiente virtual ativo,
+rode `pip install -r requirements.txt` de novo.
 
 **No Windows, "execução de scripts foi desabilitada neste sistema"**
 É o bloqueio padrão do PowerShell. Use `powershell -ExecutionPolicy Bypass -File <script>`,
@@ -550,17 +746,3 @@ docker compose down -v   # o -v apaga também os dados do banco
 docker compose up -d
 cd backend && python popular_banco.py
 ```
-
----
-
-## Próximas etapas
-
-- [x] **Etapa 1 — Cadastro de clientes** (esta entrega)
-- [ ] Etapa 2 — Cadastro de barbeiros e serviços
-- [ ] Etapa 3 — Agenda e agendamentos
-- [ ] Etapa 4 — Caixa e relatórios
-- [ ] Etapa 5 — Login e controle de acesso
-
-Conforme cada etapa ficar pronta, o item correspondente aparece no menu lateral. A
-estrutura do back-end (`models` / `schemas` / `crud` / `routers`) foi montada pensando
-nisso: cada etapa nova é um conjunto novo desses quatro arquivos, sem mexer no que já funciona.
