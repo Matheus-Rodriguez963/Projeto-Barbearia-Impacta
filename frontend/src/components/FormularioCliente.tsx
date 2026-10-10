@@ -1,18 +1,22 @@
 "use client";
 
-// Coração da etapa 1: o formulário de cadastro do cliente.
-// O mesmo componente serve pra cadastrar e pra editar — muda só o que eu recebo por prop.
+// O formulário do cliente (etapa 1). O mesmo componente serve pra cadastrar e pra editar —
+// muda só o que eu recebo por prop.
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Botao, { BotaoLink } from "@/components/Botao";
-import Campo, { classeInputComErro } from "@/components/Campo";
+import Campo, { classeInputComErro, Seletor } from "@/components/Campo";
+import Confirmacao from "@/components/Confirmacao";
 import FichaResumo from "@/components/FichaResumo";
+import Opcao, { GrupoDeOpcoes } from "@/components/Opcao";
+import RodapeDoFormulario from "@/components/RodapeDoFormulario";
 import Secao from "@/components/Secao";
-import { atualizarCliente, cadastrarCliente, ErroDaApi, excluirCliente } from "@/lib/api";
-import { cpfValido, mascaraCpf, mascaraTelefone, soNumeros, telefoneValido } from "@/lib/mascaras";
-import { BARBEIROS, ORIGENS, type Cliente, type DadosDoCliente, type Origem } from "@/lib/tipos";
+import { atualizarCliente, cadastrarCliente, excluirCliente, lerErroDoFormulario, listarBarbeiros } from "@/lib/api";
+import { conferirIdentificacao, mascaraCpf, mascaraTelefone, soNumeros } from "@/lib/mascaras";
+import { ORIGENS, type Cliente, type DadosDoCliente, type Origem } from "@/lib/tipos";
+import { useFormulario } from "@/lib/useFormulario";
 
 /** O formulário em si — tudo string, que é o que o input devolve. */
 interface Formulario {
@@ -54,72 +58,60 @@ function preencherCom(cliente: Cliente): Formulario {
   };
 }
 
+/** Validação rápida aqui no navegador. A do servidor continua valendo. */
+function conferirCampos(dados: Formulario): Record<string, string> {
+  const problemas = conferirIdentificacao(dados);
+  if (dados.data_nascimento && dados.data_nascimento > new Date().toISOString().slice(0, 10)) {
+    problemas.data_nascimento = "A data não pode estar no futuro.";
+  }
+  return problemas;
+}
+
+/** Monta o corpo do jeito que a API espera (campo em branco vira null). */
+function montarEnvio(dados: Formulario): DadosDoCliente {
+  return {
+    nome: dados.nome.trim(),
+    telefone: soNumeros(dados.telefone),
+    cpf: soNumeros(dados.cpf),
+    apelido: dados.apelido.trim() || null,
+    email: dados.email.trim() || null,
+    data_nascimento: dados.data_nascimento || null,
+    barbeiro_preferido: dados.barbeiro_preferido,
+    origem: dados.origem,
+    observacoes: dados.observacoes.trim() || null,
+  };
+}
+
 export default function FormularioCliente({ clienteExistente }: { clienteExistente?: Cliente }) {
   const editando = Boolean(clienteExistente);
   const navegador = useRouter();
 
-  const [dados, setDados] = useState<Formulario>(
+  const { dados, setDados, erros, setErros, aviso, setAviso, mudar } = useFormulario(() =>
     clienteExistente ? preencherCom(clienteExistente) : FORMULARIO_VAZIO,
   );
-  const [erros, setErros] = useState<Record<string, string>>({});
-  const [aviso, setAviso] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState<Cliente | null>(null);
-  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
 
-  /** Atualiza um campo e já limpa o erro dele (senão o vermelho fica na tela pra sempre). */
-  function mudar<C extends keyof Formulario>(campo: C, valor: Formulario[C]) {
-    setDados((atual) => ({ ...atual, [campo]: valor }));
-    setErros((atual) => {
-      const semEsse = { ...atual };
-      delete semEsse[campo];
-      return semEsse;
-    });
-    setAviso("");
-  }
+  // o "barbeiro preferido" lista a equipe cadastrada (só quem está disponível)
+  const [equipe, setEquipe] = useState<string[]>([]);
 
-  /** Validação rápida aqui no navegador. A do servidor continua valendo. */
-  function conferirCampos(): Record<string, string> {
-    const problemas: Record<string, string> = {};
+  useEffect(() => {
+    listarBarbeiros("", 1, 100, true)
+      .then((resposta) => setEquipe(resposta.itens.map((barbeiro) => barbeiro.nome_de_chamada)))
+      .catch(() => setEquipe([])); // sem API o select fica só com "Sem preferência" e o valor atual
+  }, []);
 
-    if (dados.nome.trim().split(/\s+/).filter(Boolean).length < 2) {
-      problemas.nome = "Informe o nome completo (nome e sobrenome).";
-    }
-    if (!telefoneValido(dados.telefone)) {
-      problemas.telefone = "Telefone inválido. Ex: (11) 99000-1234";
-    }
-    if (!cpfValido(dados.cpf)) {
-      problemas.cpf = "CPF inválido. Confira os números.";
-    }
-    if (dados.email.trim() && !dados.email.includes("@")) {
-      problemas.email = "E-mail inválido.";
-    }
-    if (dados.data_nascimento && dados.data_nascimento > new Date().toISOString().slice(0, 10)) {
-      problemas.data_nascimento = "A data não pode estar no futuro.";
-    }
-
-    return problemas;
-  }
-
-  /** Monta o corpo do jeito que a API espera (campo em branco vira null). */
-  function montarEnvio(): DadosDoCliente {
-    return {
-      nome: dados.nome.trim(),
-      telefone: soNumeros(dados.telefone),
-      cpf: soNumeros(dados.cpf),
-      apelido: dados.apelido.trim() || null,
-      email: dados.email.trim() || null,
-      data_nascimento: dados.data_nascimento || null,
-      barbeiro_preferido: dados.barbeiro_preferido,
-      origem: dados.origem,
-      observacoes: dados.observacoes.trim() || null,
-    };
+  // se o cliente tinha um barbeiro que saiu da equipe, mantenho ele na lista
+  // pra não trocar a preferência sem a recepção perceber
+  const opcoesDeBarbeiro = ["Sem preferência", ...equipe];
+  if (!opcoesDeBarbeiro.includes(dados.barbeiro_preferido)) {
+    opcoesDeBarbeiro.push(dados.barbeiro_preferido);
   }
 
   async function salvar(evento: React.FormEvent) {
     evento.preventDefault();
 
-    const problemas = conferirCampos();
+    const problemas = conferirCampos(dados);
     if (Object.keys(problemas).length > 0) {
       setErros(problemas);
       setAviso(`Faltando: ${Object.keys(problemas).join(", ")}`);
@@ -127,30 +119,16 @@ export default function FormularioCliente({ clienteExistente }: { clienteExisten
     }
 
     setSalvando(true);
-    setErros({});
-    setAviso("");
-
     try {
       const cliente = clienteExistente
-        ? await atualizarCliente(clienteExistente.id, montarEnvio())
-        : await cadastrarCliente(montarEnvio());
-
+        ? await atualizarCliente(clienteExistente.id, montarEnvio(dados))
+        : await cadastrarCliente(montarEnvio(dados));
       setSalvo(cliente);
       navegador.refresh(); // pra lista de clientes já vir atualizada
     } catch (erro) {
-      if (erro instanceof ErroDaApi) {
-        // 422: a API diz campo por campo o que está errado
-        if (erro.erros.length > 0) {
-          setErros(Object.fromEntries(erro.erros.map((e) => [e.campo, e.mensagem])));
-        }
-        // 409: telefone/CPF/e-mail já cadastrado em outra ficha
-        if (erro.campo) {
-          setErros((atual) => ({ ...atual, [erro.campo as string]: erro.message }));
-        }
-        setAviso(erro.message);
-      } else {
-        setAviso("Não deu pra salvar agora. Tenta de novo.");
-      }
+      const lido = lerErroDoFormulario(erro);
+      setErros(lido.erros);
+      setAviso(lido.aviso);
     } finally {
       setSalvando(false);
     }
@@ -170,58 +148,51 @@ export default function FormularioCliente({ clienteExistente }: { clienteExisten
     }
   }
 
-  // ---------------------------------------------------------------- tela de "deu certo"
   if (salvo) {
-    const primeiroNome = salvo.nome.split(" ")[0];
-
     return (
-      <section className="flex flex-1 flex-col items-center justify-center gap-5 p-10 text-center">
-        <div className="flex size-15 items-center justify-center border border-latao text-[26px] text-terracota">
-          ✓
-        </div>
-        <h2 className="m-0 font-titulo text-[34px] leading-tight text-tinta">
-          {editando ? "Ficha atualizada." : `${primeiroNome} está na base.`}
-        </h2>
-        <p className="m-0 max-w-110 text-[15px] leading-relaxed text-tinta-media">
+      <Confirmacao
+        titulo={editando ? "Ficha atualizada." : `${salvo.nome.split(" ")[0]} está na base.`}
+        acoes={
+          <>
+            <Botao
+              onClick={() => {
+                // volto pro formulário: se cadastrei, começo outro do zero
+                setSalvo(null);
+                if (!editando) setDados(FORMULARIO_VAZIO);
+              }}
+            >
+              {editando ? "Voltar à ficha" : "Cadastrar outro"}
+            </Botao>
+            <BotaoLink href="/clientes" estilo="principal">
+              Ver lista de clientes
+            </BotaoLink>
+          </>
+        }
+      >
+        <p className="m-0">
           {editando
             ? "As alterações já valem para os próximos agendamentos."
             : "Ficha salva. A partir daqui é só marcar o horário."}
         </p>
-
-        <div className="mt-2 flex flex-wrap justify-center gap-3.5">
-          <Botao
-            onClick={() => {
-              // volto pro formulário: se cadastrei, começo outro do zero
-              setSalvo(null);
-              if (!editando) setDados(FORMULARIO_VAZIO);
-            }}
-          >
-            {editando ? "Voltar à ficha" : "Cadastrar outro"}
-          </Botao>
-          <BotaoLink href="/clientes" estilo="principal">
-            Ver lista de clientes
-          </BotaoLink>
-        </div>
-      </section>
+      </Confirmacao>
     );
   }
 
-  // ---------------------------------------------------------------- formulário
   return (
     <form onSubmit={salvar} className="flex min-h-0 flex-1 flex-col" noValidate>
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="min-w-0 flex-1 overflow-auto px-6 py-8 md:px-10">
+        <div className="min-w-0 flex-1 overflow-auto px-6 py-8.5 md:px-10">
           <h1 className="mb-1 font-titulo text-[32px] leading-tight text-tinta">
             {editando ? "Editar cliente" : "Cadastrar cliente"}
           </h1>
-          <p className="mb-7 max-w-130 text-sm leading-relaxed text-tinta-media">
-            Pergunte o telefone primeiro — é a chave de busca na agenda. O resto pode ser completado
-            depois pelo próprio cliente.
+          <p className="mb-7.5 max-w-130 text-sm leading-relaxed text-tinta-media">
+            Pergunte o telefone primeiro — é a chave de busca na agenda. O resto pode ser completado depois pelo próprio
+            cliente.
           </p>
 
           <Secao titulo="Identificação" />
 
-          <div className="mb-8 grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
+          <div className="mb-8.5 grid grid-cols-1 gap-x-6.5 gap-y-5.5 md:grid-cols-2">
             <Campo rotulo="Telefone / WhatsApp" erro={erros.telefone}>
               <input
                 type="tel"
@@ -229,7 +200,6 @@ export default function FormularioCliente({ clienteExistente }: { clienteExisten
                 autoComplete="off"
                 placeholder="(11) 90000-0000"
                 value={dados.telefone}
-                // a máscara é aplicada a cada tecla digitada
                 onChange={(e) => mudar("telefone", mascaraTelefone(e.target.value))}
                 className={classeInputComErro(Boolean(erros.telefone))}
               />
@@ -292,47 +262,22 @@ export default function FormularioCliente({ clienteExistente }: { clienteExisten
 
           <Secao titulo="Preferências" />
 
-          <div className="mb-8 flex flex-col gap-5">
+          <div className="mb-8.5 flex flex-col gap-5.5">
             <Campo rotulo="Barbeiro preferido" className="max-w-85">
-              <span className="relative block">
-                <select
-                  value={dados.barbeiro_preferido}
-                  onChange={(e) => mudar("barbeiro_preferido", e.target.value)}
-                  className={`${classeInputComErro(false)} cursor-pointer appearance-none pr-9`}
-                >
-                  {BARBEIROS.map((barbeiro) => (
-                    <option key={barbeiro}>{barbeiro}</option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute top-4 right-3.5 text-[11px] text-[#9a5a2e]">▼</span>
-              </span>
+              <Seletor value={dados.barbeiro_preferido} onChange={(e) => mudar("barbeiro_preferido", e.target.value)}>
+                {opcoesDeBarbeiro.map((barbeiro) => (
+                  <option key={barbeiro}>{barbeiro}</option>
+                ))}
+              </Seletor>
             </Campo>
 
-            <div className="flex flex-col gap-2.5">
-              <span className="font-rotulo text-[10px] tracking-[0.22em] text-rotulo uppercase">
-                Como nos conheceu
-              </span>
-              <div className="flex flex-wrap gap-2.5">
-                {ORIGENS.map((origem) => {
-                  const marcada = dados.origem === origem;
-                  return (
-                    <button
-                      key={origem}
-                      type="button"
-                      aria-pressed={marcada}
-                      onClick={() => mudar("origem", origem)}
-                      className={`cursor-pointer border px-4 py-2.5 font-rotulo text-[10px] tracking-[0.18em] uppercase ${
-                        marcada
-                          ? "border-terracota bg-terracota text-creme"
-                          : "border-mogno/30 text-[#6b563f] hover:border-terracota hover:text-tinta"
-                      }`}
-                    >
-                      {origem}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <GrupoDeOpcoes rotulo="Como nos conheceu">
+              {ORIGENS.map((origem) => (
+                <Opcao key={origem} marcada={dados.origem === origem} onClick={() => mudar("origem", origem)}>
+                  {origem}
+                </Opcao>
+              ))}
+            </GrupoDeOpcoes>
 
             <Campo rotulo="Observações internas" opcional className="max-w-130">
               <textarea
@@ -356,43 +301,13 @@ export default function FormularioCliente({ clienteExistente }: { clienteExisten
         />
       </div>
 
-      {/* rodapé com os botões */}
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-mogno/15 bg-papel-claro/70 px-6 py-5 md:px-10">
-        <div className="font-rotulo text-[11px] tracking-[0.14em] text-erro uppercase">{aviso}</div>
-
-        <div className="ml-auto flex flex-wrap items-center gap-3.5">
-          {editando &&
-            (confirmandoExclusao ? (
-              // confirmação na própria tela, sem popup do navegador
-              <>
-                <span className="font-rotulo text-[11px] tracking-[0.14em] text-erro uppercase">
-                  Excluir mesmo?
-                </span>
-                <Botao type="button" onClick={() => setConfirmandoExclusao(false)}>
-                  Não
-                </Botao>
-                <Botao
-                  type="button"
-                  onClick={excluir}
-                  disabled={salvando}
-                  className="border-erro text-erro hover:bg-erro/10"
-                >
-                  Sim, excluir
-                </Botao>
-              </>
-            ) : (
-              <Botao type="button" onClick={() => setConfirmandoExclusao(true)} className="border-erro/50 text-erro">
-                Excluir
-              </Botao>
-            ))}
-
-          <BotaoLink href="/clientes">Cancelar</BotaoLink>
-
-          <Botao type="submit" estilo="principal" disabled={salvando}>
-            {salvando ? "Salvando..." : editando ? "Salvar alterações" : "Salvar cliente"}
-          </Botao>
-        </div>
-      </footer>
+      <RodapeDoFormulario
+        aviso={aviso}
+        salvando={salvando}
+        rotuloSalvar={editando ? "Salvar alterações" : "Salvar cliente"}
+        voltarPara="/clientes"
+        onExcluir={editando ? excluir : undefined}
+      />
     </form>
   );
 }

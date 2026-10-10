@@ -22,15 +22,15 @@ export default function FichaResumo({ nome, telefone, email, barbeiro, origem, s
   ];
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-6 overflow-auto border-t border-mogno/15 bg-papel-claro/50 px-7 py-8 lg:w-82.5 lg:border-t-0 lg:border-l">
+    <aside className="flex w-full shrink-0 flex-col gap-5.5 overflow-auto border-t border-mogno/15 bg-papel-claro/50 px-7.5 py-8.5 lg:w-82.5 lg:border-t-0 lg:border-l">
       <Secao titulo="Ficha do cliente" />
 
-      <div className="flex flex-col gap-4 border border-mogno/20 bg-papel-claro px-5 py-5">
+      <div className="flex flex-col gap-4 border border-mogno/22 bg-papel-claro px-5 py-5.5">
         <div className="flex items-center gap-3.5">
           <div className="flex size-12 shrink-0 items-center justify-center bg-terracota font-titulo text-[19px] text-creme">
             {iniciais(nome)}
           </div>
-          <div className="flex min-w-0 flex-col gap-0.5">
+          <div className="flex min-w-0 flex-col gap-0.75">
             <div className="truncate font-titulo text-[19px] leading-tight text-tinta">
               {nome.trim() || "Novo cliente"}
             </div>
@@ -40,11 +40,11 @@ export default function FichaResumo({ nome, telefone, email, barbeiro, origem, s
           </div>
         </div>
 
-        <div className="h-px bg-mogno/15" />
+        <div className="h-px bg-mogno/14" />
 
-        <dl className="flex flex-col gap-3">
+        <dl className="flex flex-col gap-2.75">
           {linhas.map((linha) => (
-            <div key={linha.rotulo} className="flex justify-between gap-3 text-[13px]">
+            <div key={linha.rotulo} className="flex justify-between gap-3 text-[13px] leading-[normal]">
               <dt className="text-tinta-fraca">{linha.rotulo}</dt>
               <dd className="m-0 truncate text-right text-tinta">{linha.valor}</dd>
             </div>

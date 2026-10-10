@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { BotaoLink } from "@/components/Botao";
+import Paginacao from "@/components/Paginacao";
 import Topo from "@/components/Topo";
 import { ErroDaApi, listarClientes } from "@/lib/api";
 import { dataBonita } from "@/lib/mascaras";
@@ -134,30 +135,7 @@ export default function PaginaClientes() {
           </table>
         </div>
 
-        {/* paginação simples, só com anterior/próxima */}
-        {ultimaPagina > 1 && (
-          <div className="mt-5 flex items-center justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => setPagina((p) => Math.max(1, p - 1))}
-              disabled={pagina === 1}
-              className="cursor-pointer border border-mogno/30 px-4 py-2 font-rotulo text-[10px] tracking-[0.2em] text-tinta-media uppercase disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <span className="font-rotulo text-[10px] tracking-[0.2em] text-rotulo uppercase">
-              Página {pagina} de {ultimaPagina}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPagina((p) => Math.min(ultimaPagina, p + 1))}
-              disabled={pagina === ultimaPagina}
-              className="cursor-pointer border border-mogno/30 px-4 py-2 font-rotulo text-[10px] tracking-[0.2em] text-tinta-media uppercase disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Próxima
-            </button>
-          </div>
-        )}
+        <Paginacao pagina={pagina} ultima={ultimaPagina} onMudar={setPagina} />
       </div>
     </>
   );
