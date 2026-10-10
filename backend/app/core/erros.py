@@ -2,9 +2,9 @@
 
 
 class RegistroDuplicado(Exception):
-    """Já existe um cliente com esse telefone / CPF / e-mail."""
+    """Já existe um cadastro com esse telefone / CPF / e-mail na mesma tabela."""
 
-    def __init__(self, campo: str, valor: str):
+    def __init__(self, campo: str, valor: str, dono: str):
         self.campo = campo
         self.valor = valor
-        super().__init__(f"Já existe um cliente cadastrado com esse {campo}.")
+        super().__init__(f"Já existe um {dono} cadastrado com esse {campo}.")
