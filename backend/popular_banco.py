@@ -1,13 +1,20 @@
-"""Coloca alguns clientes e barbeiros de exemplo no banco, só pra tela não abrir vazia.
+"""Coloca clientes, barbeiros, serviços e alguns horários de exemplo no banco, só pra tela não abrir vazia.
 
 Rodar com:  python popular_banco.py
 """
 
+from datetime import date, time, timedelta
+
 from app.core.database import Base, SessaoLocal, engine
+from app.core.erros import RegraDaAgenda
+from app.crud import agendamento as crud_agendamento
 from app.crud import barbeiro as crud_barbeiro
 from app.crud import cliente as crud
+from app.crud import servico as crud_servico
+from app.schemas.agendamento import AgendamentoCriar
 from app.schemas.barbeiro import BarbeiroCriar
 from app.schemas.cliente import ClienteCriar
+from app.schemas.servico import ServicoCriar
 
 EXEMPLOS = [
     {
@@ -69,6 +76,57 @@ EQUIPE = [
     },
 ]
 
+# o cardápio da casa (etapa 3)
+CARDAPIO = [
+    {"nome": "Barba", "duracao": 30, "preco": 35,
+     "descricao": "Barba na navalha com toalha quente e balm."},
+    {"nome": "Corte clássico", "duracao": 45, "preco": 50,
+     "descricao": "Tesoura e máquina, com acabamento na navalha."},
+    {"nome": "Limpeza de pele", "duracao": 40, "preco": 55,
+     "descricao": "Esfoliação, extração e máscara de argila."},
+    {"nome": "Barboterapia", "duracao": 50, "preco": 65,
+     "descricao": "Barba com vapor de ozônio, óleos e massagem facial."},
+    {"nome": "Corte com barba", "duracao": 75, "preco": 80,
+     "descricao": "O corte clássico e a barba completa na mesma cadeira."},
+]
+
+# alguns horários nos próximos dias: (dias a partir de hoje, hora, telefone do cliente, telefone do barbeiro, serviço)
+HORARIOS = [
+    (1, "09:00", "11988887777", "1133331962", "Corte clássico"),
+    (1, "10:00", "11977776666", "11981234567", "Corte com barba"),
+    (1, "14:30", "21966665555", "11976543210", "Limpeza de pele"),
+    (2, "11:00", "11977776666", "11965432109", "Barba"),
+    (2, "16:00", "11988887777", "11981234567", "Barboterapia"),
+    (3, "15:00", "21966665555", "1133331962", "Corte clássico"),
+]
+
+
+def _marcar_exemplos(sessao):
+    """Marca os HORARIOS. Se cair na folga de alguém, tenta o dia seguinte (a semana muda a cada execução)."""
+    _, ja_tem = crud_agendamento.listar(sessao, de=date.today(), tamanho=1)
+    if ja_tem:
+        print("- a agenda já tem horários, pulei os exemplos.")
+        return
+
+    servicos = {s.nome: s.id for s in crud_servico.listar(sessao)[1]}
+    for dias, hora, tel_cliente, tel_barbeiro, servico in HORARIOS:
+        cliente = crud.buscar_por_telefone(sessao, tel_cliente)
+        _, barbeiros = crud_barbeiro.listar(sessao, busca=tel_barbeiro)
+        if not cliente or not barbeiros:
+            continue
+
+        for tentativa in range(7):
+            dados = AgendamentoCriar(
+                cliente_id=cliente.id, barbeiro_id=barbeiros[0].id, servico_id=servicos[servico],
+                data=date.today() + timedelta(days=dias + tentativa), hora=time.fromisoformat(hora),
+            )
+            try:
+                crud_agendamento.criar(sessao, dados)
+                print(f"+ {cliente.nome} com {barbeiros[0].nome} em {dados.data:%d/%m} às {hora}.")
+                break
+            except RegraDaAgenda:
+                continue
+
 
 def main():
     Base.metadata.create_all(bind=engine)
@@ -94,6 +152,18 @@ def main():
 
             crud_barbeiro.criar(sessao, dados)
             print(f"+ {dados.nome} (barbeiro) cadastrado.")
+
+        for exemplo in CARDAPIO:
+            dados = ServicoCriar(**exemplo)
+            _, ja_tem = crud_servico.listar(sessao, busca=dados.nome)
+            if any(s.nome.lower() == dados.nome.lower() for s in ja_tem):
+                print(f"- {dados.nome} (serviço) já estava cadastrado, pulei.")
+                continue
+
+            crud_servico.criar(sessao, dados)
+            print(f"+ {dados.nome} (serviço) cadastrado.")
+
+        _marcar_exemplos(sessao)
     finally:
         sessao.close()
 

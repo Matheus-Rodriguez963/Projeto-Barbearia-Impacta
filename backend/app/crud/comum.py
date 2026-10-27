@@ -1,10 +1,11 @@
-"""O que o crud do cliente e o do barbeiro fazem igual."""
+"""O que os cruds fazem igual."""
 
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import Session
 
-from app.core.erros import RegistroDuplicado
+from app.core.erros import RegistroDuplicado, RegistroEmUso
 from app.core.validadores import so_numeros
+from app.models.agendamento import Agendamento
 
 
 def conferir_duplicados(sessao: Session, modelo, dados, dono: str, ignorar_id: int | None = None) -> None:
@@ -45,6 +46,15 @@ def paginar(sessao: Session, consulta: Select, pagina: int, tamanho: int) -> tup
     total = sessao.scalar(select(func.count()).select_from(consulta.subquery())) or 0
     itens = sessao.scalars(consulta.offset((pagina - 1) * tamanho).limit(tamanho))
     return total, list(itens)
+
+
+def impedir_exclusao_com_agenda(sessao: Session, filtro, quem: str) -> None:
+    """Quem tem agendamento não pode ser apagado, senão a agenda fica com um buraco no meio.
+
+    filtro é a condição do agendamento (Agendamento.cliente_id == 3, por exemplo).
+    """
+    if sessao.scalars(select(Agendamento.id).where(filtro).limit(1)).first() is not None:
+        raise RegistroEmUso(f"{quem} tem agendamentos na agenda. Cancele ou desative em vez de excluir.")
 
 
 def salvar(sessao: Session, registro):

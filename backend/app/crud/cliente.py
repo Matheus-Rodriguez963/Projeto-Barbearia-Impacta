@@ -4,7 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.validadores import so_numeros
-from app.crud.comum import conferir_duplicados, filtrar_pela_busca, paginar, salvar
+from app.crud.comum import conferir_duplicados, filtrar_pela_busca, impedir_exclusao_com_agenda, paginar, salvar
+from app.models.agendamento import Agendamento
 from app.models.cliente import Cliente
 from app.schemas.cliente import ClienteAtualizar, ClienteCriar
 
@@ -41,5 +42,6 @@ def atualizar(sessao: Session, cliente: Cliente, dados: ClienteAtualizar) -> Cli
 
 
 def remover(sessao: Session, cliente: Cliente) -> None:
+    impedir_exclusao_com_agenda(sessao, Agendamento.cliente_id == cliente.id, "Esse cliente")
     sessao.delete(cliente)
     sessao.commit()
