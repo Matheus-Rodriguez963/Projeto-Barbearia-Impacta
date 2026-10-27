@@ -38,6 +38,24 @@ o cliente vai ver o barbeiro:
 
 ![Cadastro de barbeiro](docs/imagens/cadastro-de-barbeiro.jpg)
 
+**Agenda** — a tela inicial: quem vem, com qual barbeiro (a faixa à esquerda é a cor dele) e
+pra fazer o quê, com Concluir e Cancelar direto na linha:
+
+![Agenda do dia](docs/imagens/agenda-do-dia.jpg)
+
+**Marcar horário** — escolhidos o cliente, o serviço, o barbeiro e o dia, aparecem só os
+horários livres (o Beto trabalha até as 18h, então o último corte de 45 min é às 17:15):
+
+![Marcar horário](docs/imagens/marcar-horario.jpg)
+
+**Cardápio de serviços** — cada serviço com o tempo de cadeira e o preço:
+
+![Cardápio de serviços](docs/imagens/cardapio-de-servicos.jpg)
+
+**Cadastro de serviço** — o cartão da direita mostra como o serviço aparece na hora de marcar:
+
+![Cadastro de serviço](docs/imagens/cadastro-de-servico.jpg)
+
 ---
 
 ## Índice
