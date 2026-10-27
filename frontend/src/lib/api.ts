@@ -2,13 +2,21 @@
 // eu mexo num lugar só.
 
 import type {
+  Agendamento,
   Barbeiro,
   Cliente,
+  DadosDoAgendamento,
   DadosDoBarbeiro,
   DadosDoCliente,
+  DadosDoServico,
   ErroDeCampo,
+  HorariosLivres,
+  ListaDeAgendamentos,
   ListaDeBarbeiros,
   ListaDeClientes,
+  ListaDeServicos,
+  Servico,
+  StatusDoAgendamento,
 } from "./tipos";
 
 const URL_DA_API = process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000";
@@ -142,4 +150,78 @@ export function removerFotoBarbeiro(id: number) {
 
 export function excluirBarbeiro(id: number) {
   return requisitar<void>(`/api/barbeiros/${id}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------- serviços (etapa 3)
+
+export function listarServicos(ativo?: boolean) {
+  const parametros = new URLSearchParams({ tamanho: "100" });
+  if (ativo !== undefined) parametros.set("ativo", String(ativo));
+  return requisitar<ListaDeServicos>(`/api/servicos?${parametros}`);
+}
+
+export function buscarServico(id: number) {
+  return requisitar<Servico>(`/api/servicos/${id}`);
+}
+
+export function cadastrarServico(dados: DadosDoServico) {
+  return requisitar<Servico>("/api/servicos", { method: "POST", body: JSON.stringify(dados) });
+}
+
+export function atualizarServico(id: number, dados: Partial<DadosDoServico>) {
+  return requisitar<Servico>(`/api/servicos/${id}`, { method: "PUT", body: JSON.stringify(dados) });
+}
+
+export function excluirServico(id: number) {
+  return requisitar<void>(`/api/servicos/${id}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------- agenda (etapa 3)
+
+/** de/ate no formato "2026-10-28"; o resto é filtro opcional. */
+export function listarAgendamentos(filtro: {
+  de?: string;
+  ate?: string;
+  barbeiroId?: number;
+  clienteId?: number;
+  status?: StatusDoAgendamento;
+}) {
+  const parametros = new URLSearchParams({ tamanho: "500" });
+  if (filtro.de) parametros.set("de", filtro.de);
+  if (filtro.ate) parametros.set("ate", filtro.ate);
+  if (filtro.barbeiroId) parametros.set("barbeiro_id", String(filtro.barbeiroId));
+  if (filtro.clienteId) parametros.set("cliente_id", String(filtro.clienteId));
+  if (filtro.status) parametros.set("status", filtro.status);
+
+  return requisitar<ListaDeAgendamentos>(`/api/agendamentos?${parametros}`);
+}
+
+export function buscarAgendamento(id: number) {
+  return requisitar<Agendamento>(`/api/agendamentos/${id}`);
+}
+
+/** ignorarId: na remarcação, o próprio horário não pode aparecer como ocupado. */
+export function buscarHorariosLivres(barbeiroId: number, servicoId: number, data: string, ignorarId?: number) {
+  const parametros = new URLSearchParams({
+    barbeiro_id: String(barbeiroId),
+    servico_id: String(servicoId),
+    data,
+  });
+  if (ignorarId) parametros.set("ignorar_id", String(ignorarId));
+  return requisitar<HorariosLivres>(`/api/agendamentos/horarios-livres?${parametros}`);
+}
+
+export function marcarHorario(dados: DadosDoAgendamento) {
+  return requisitar<Agendamento>("/api/agendamentos", { method: "POST", body: JSON.stringify(dados) });
+}
+
+export function atualizarAgendamento(
+  id: number,
+  dados: Partial<Omit<DadosDoAgendamento, "cliente_id">> & { status?: StatusDoAgendamento },
+) {
+  return requisitar<Agendamento>(`/api/agendamentos/${id}`, { method: "PUT", body: JSON.stringify(dados) });
+}
+
+export function excluirAgendamento(id: number) {
+  return requisitar<void>(`/api/agendamentos/${id}`, { method: "DELETE" });
 }

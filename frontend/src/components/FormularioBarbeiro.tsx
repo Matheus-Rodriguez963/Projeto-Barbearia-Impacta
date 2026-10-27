@@ -15,7 +15,14 @@ import JornadaSemanal from "@/components/JornadaSemanal";
 import Opcao, { GrupoDeOpcoes } from "@/components/Opcao";
 import RodapeDoFormulario from "@/components/RodapeDoFormulario";
 import Secao from "@/components/Secao";
-import { atualizarBarbeiro, cadastrarBarbeiro, enderecoDaFoto, excluirBarbeiro, lerErroDoFormulario } from "@/lib/api";
+import {
+  atualizarBarbeiro,
+  cadastrarBarbeiro,
+  enderecoDaFoto,
+  ErroDaApi,
+  excluirBarbeiro,
+  lerErroDoFormulario,
+} from "@/lib/api";
 import { conferirIdentificacao, mascaraCpf, mascaraTelefone, soNumeros } from "@/lib/mascaras";
 import {
   diasComHorarioErrado,
@@ -218,8 +225,9 @@ export default function FormularioBarbeiro({ barbeiroExistente }: { barbeiroExis
       await excluirBarbeiro(barbeiroExistente.id);
       navegador.push("/barbeiros");
       navegador.refresh();
-    } catch {
-      setAviso("Não consegui excluir esse cadastro.");
+    } catch (erro) {
+      // quem tem agendamento não pode ser apagado: a API explica o que fazer
+      setAviso(erro instanceof ErroDaApi ? erro.message : "Não consegui excluir esse cadastro.");
       setSalvando(false);
     }
   }

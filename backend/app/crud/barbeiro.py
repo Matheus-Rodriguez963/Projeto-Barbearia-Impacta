@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.crud.comum import conferir_duplicados, filtrar_pela_busca, paginar, salvar
+from app.crud.comum import conferir_duplicados, filtrar_pela_busca, impedir_exclusao_com_agenda, paginar, salvar
+from app.models.agendamento import Agendamento
 from app.models.barbeiro import Barbeiro, HorarioBarbeiro
 from app.schemas.barbeiro import BarbeiroAtualizar, BarbeiroCriar, HorarioDoDia
 
@@ -70,5 +71,6 @@ def trocar_foto(sessao: Session, barbeiro: Barbeiro, conteudo: bytes | None, tip
 
 
 def remover(sessao: Session, barbeiro: Barbeiro) -> None:
+    impedir_exclusao_com_agenda(sessao, Agendamento.barbeiro_id == barbeiro.id, "Esse barbeiro")
     sessao.delete(barbeiro)
     sessao.commit()

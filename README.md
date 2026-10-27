@@ -1,15 +1,15 @@
 # Barbearia Dom Alfredo — Sistema de Gestão
 
-Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 2: o cadastro de
-barbeiros**, somando com a Etapa 1 (cadastro de clientes) — as duas completas com front-end,
-back-end, banco de dados e testes automatizados.
+Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 3: os serviços e a
+agenda**, somando com a Etapa 1 (cadastro de clientes) e a Etapa 2 (cadastro de barbeiros) — as
+três completas com front-end, back-end, banco de dados e testes automatizados.
 
 O sistema simula o balcão de uma barbearia: a recepcionista cadastra o cliente perguntando
 primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser
 completado depois.
 
 **Next.js 16 + TypeScript + Tailwind 4** no front · **FastAPI + SQLAlchemy 2** no back ·
-**PostgreSQL 16** no banco · **80 testes** no pytest
+**PostgreSQL 16** no banco · **113 testes** no pytest
 
 ---
 
@@ -37,6 +37,24 @@ não passa:
 o cliente vai ver o barbeiro:
 
 ![Cadastro de barbeiro](docs/imagens/cadastro-de-barbeiro.jpg)
+
+**Agenda** — a tela inicial: quem vem, com qual barbeiro (a faixa à esquerda é a cor dele) e
+pra fazer o quê, com Concluir e Cancelar direto na linha:
+
+![Agenda do dia](docs/imagens/agenda-do-dia.jpg)
+
+**Marcar horário** — escolhidos o cliente, o serviço, o barbeiro e o dia, aparecem só os
+horários livres (o Beto trabalha até as 18h, então o último corte de 45 min é às 17:15):
+
+![Marcar horário](docs/imagens/marcar-horario.jpg)
+
+**Cardápio de serviços** — cada serviço com o tempo de cadeira e o preço:
+
+![Cardápio de serviços](docs/imagens/cardapio-de-servicos.jpg)
+
+**Cadastro de serviço** — o cartão da direita mostra como o serviço aparece na hora de marcar:
+
+![Cadastro de serviço](docs/imagens/cadastro-de-servico.jpg)
 
 ---
 
@@ -82,7 +100,8 @@ powershell -ExecutionPolicy Bypass -File scripts\instalar.ps1
 > padrão. Ele vale só para essa execução, não muda a configuração da máquina.
 
 O script sobe o PostgreSQL no Docker, instala as dependências do back e do front, cria os
-arquivos `.env` e cadastra 3 clientes e 4 barbeiros de exemplo pra tela não abrir vazia.
+arquivos `.env` e cadastra 3 clientes, 4 barbeiros, 5 serviços e alguns horários nos próximos
+dias pra tela não abrir vazia.
 
 ### 2. Ligar os dois servidores
 
@@ -109,10 +128,30 @@ Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as f
 
 | Camada | Entrega |
 |---|---|
-| **Front-end** | Clientes e barbeiros: cadastro, listagem com busca e paginação, edição e exclusão |
-| **Back-end** | API REST com o CRUD de clientes (6 rotas) e de barbeiros (8 rotas, com a foto), validações e tratamento de erros |
-| **Banco** | Tabelas `clientes`, `barbeiros` e `horarios_barbeiro` criadas pelo SQLAlchemy |
-| **Testes** | 80 testes no pytest cobrindo as validações e todas as rotas da API |
+| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem, edição e exclusão. Agenda: marcar, ver por dia ou semana, remarcar, concluir e cancelar |
+| **Back-end** | API REST com o CRUD de clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (6 rotas, com os horários livres), validações e tratamento de erros |
+| **Banco** | Tabelas `clientes`, `barbeiros`, `horarios_barbeiro`, `servicos` e `agendamentos` criadas pelo SQLAlchemy |
+| **Testes** | 113 testes no pytest cobrindo as validações, as regras da agenda e todas as rotas da API |
+
+### Etapa 3 — serviços e agenda
+
+- **Serviços (menu "Serviços"):** o cardápio da casa — corte clássico, barba, corte com barba,
+  barboterapia e limpeza de pele já vêm de exemplo. Cada serviço tem nome, descrição, **duração**
+  (o tempo de cadeira) e **preço**. Serviço que saiu do cardápio é desligado, não apagado.
+- **Marcar horário (botão "Marcar horário"):** a tela segue a conversa do balcão — busca o
+  cliente pelo nome ou telefone, escolhe o serviço, o barbeiro (o preferido do cliente já vem
+  marcado) e o dia. Aí aparecem **só os horários livres**: a API confere o expediente do
+  barbeiro naquele dia da semana, o tempo do serviço, o intervalo de limpar a cadeira e quem já
+  está marcado.
+- **Agenda (menu "Agenda"):** a tela que mostra os agendamentos — por dia ou 7 dias, com
+  filtro por barbeiro e por situação (agendados, concluídos, cancelados e faltas), o total
+  previsto em reais e os botões de **Concluir** e **Cancelar** direto na linha. "Abrir" leva pra
+  ficha do agendamento, onde dá pra remarcar ou marcar falta.
+- **As regras que a API não deixa passar:** data que já passou, barbeiro de folga ou fora da
+  agenda, serviço que não cabe no expediente, dois clientes na mesma cadeira e o mesmo cliente
+  em duas cadeiras ao mesmo tempo.
+- **Ligação com as etapas 1 e 2:** cliente, barbeiro ou serviço com agendamento não pode ser
+  excluído (a tela explica e sugere cancelar ou desativar).
 
 ### Etapa 2 — o que o cadastro de barbeiro tem
 
@@ -184,7 +223,8 @@ flowchart TD
 ```
 
 Separei assim por dois motivos: dá pra testar o `crud` sem subir a API, e cada etapa nova
-é só repetir esses quatro arquivos. O barbeiro (etapa 2) seguiu exatamente esse caminho, e o
+é só repetir esses quatro arquivos. O barbeiro (etapa 2), o serviço e o agendamento (etapa 3)
+seguiram exatamente esse caminho, e o
 que ficou igual nos dois foi pra `schemas/regras.py` e `crud/comum.py`.
 
 ---
@@ -368,18 +408,20 @@ tests/test_cadastro_barbeiro.py ...................................  [ 43%]
 tests/test_cadastro_cliente.py ..........................           [ 76%]
 tests/test_validadores.py ...................                      [100%]
 
-======================== 80 passed in 5.51s =========================
+======================== 113 passed in 5.51s =========================
 ```
 
 Para ver o nome de cada teste, `pytest -v`.
 
-### O que os 80 testes cobrem
+### O que os 113 testes cobrem
 
 | Arquivo | Testes | O que verifica |
 |---|---|---|
 | `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
 | `test_cadastro_cliente.py` | 26 | As 6 rotas da API, os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404) |
 | `test_cadastro_barbeiro.py` | 35 | As 8 rotas de barbeiro, o horário de cada dia, as opções de ofício, os duplicados, se os horários somem junto com o barbeiro e o envio da foto (tipo e tamanho) |
+| `test_servicos.py` | 9 | O cardápio: preço com centavos, duração de 5 em 5 minutos, nome repetido (sem ligar pra maiúscula), filtro e edição |
+| `test_agendamentos.py` | 24 | As regras da agenda (passado, folga, expediente, intervalo, choque de horário do barbeiro e do cliente), os horários livres, os filtros da agenda, remarcar e não excluir quem tem agendamento |
 
 Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar batido:
 
@@ -393,6 +435,10 @@ Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar b
 - Salvar a ficha do barbeiro **com os mesmos dias de novo** não pode dar conflito — esse
   teste pegou um erro de verdade: o SQLAlchemy tentava gravar a terça nova antes de apagar
   a velha (a correção está comentada em `crud/barbeiro.py`).
+- Na agenda, o **intervalo** do barbeiro conta: se o corte acaba 14:45 e ele tem 10 minutos de
+  intervalo, 14:50 é recusado e 14:55 passa.
+- **Remarcar** 15 minutos pra frente não pode dar conflito com o próprio horário antigo.
+- Subir o preço do serviço **não muda** o valor do que já estava marcado.
 
 Os testes usam o banco `barbearia_teste`, separado do banco de verdade — nada do que
 está cadastrado é apagado. Se esse banco não existir, os testes rodam sozinhos em
@@ -448,6 +494,19 @@ Na etapa 1 era uma lista fixa no código. Agora o select busca os barbeiros disp
 Se o cliente tinha um barbeiro que saiu, o nome continua aparecendo na ficha dele, pra
 preferência não mudar sem a recepção perceber.
 
+**O agendamento guarda a duração e o preço do dia em que foi marcado.**
+Se o corte subir de R$ 50 pra R$ 55 no mês que vem, quem já marcou (ou já cortou) continua com o
+valor combinado — senão o caixa do mês passado mudaria sozinho. Trocar o serviço de um
+agendamento pega o tempo e o preço do serviço novo.
+
+**As regras da agenda ficam num lugar só (`crud/agendamento.py`).**
+Marcar, remarcar e a lista de horários livres passam pela mesma função. Assim a tela nunca
+oferece um horário que a API depois recusaria. A lista anda de 15 em 15 minutos.
+
+**Cancelado não é apagado.**
+Cancelar e "faltou" liberam o horário, mas o agendamento fica no histórico (dá até pra ver quem
+mais falta). Excluir de verdade é só pra quando marcou errado.
+
 **O menu lateral só mostra o que funciona.**
 Nada de item desabilitado como prévia das próximas etapas: botão que não faz nada só
 engana quem está usando. Cada item entra quando a funcionalidade dele ficar pronta.
@@ -467,7 +526,7 @@ projeto-faculdade/
 │   ├── requirements.txt         # dependências do Python
 │   ├── .env.example             # modelo das configurações
 │   ├── pytest.ini
-│   ├── popular_banco.py         # cadastra clientes e barbeiros de exemplo
+│   ├── popular_banco.py         # cadastra clientes, barbeiros, serviços e horários de exemplo
 │   ├── app/
 │   │   ├── main.py              # onde a API começa (CORS, erros, rotas)
 │   │   ├── core/
@@ -477,18 +536,26 @@ projeto-faculdade/
 │   │   │   └── erros.py
 │   │   ├── models/              # as tabelas do banco (SQLAlchemy)
 │   │   │   ├── cliente.py
-│   │   │   └── barbeiro.py      # barbeiros + horarios_barbeiro
+│   │   │   ├── barbeiro.py      # barbeiros + horarios_barbeiro
+│   │   │   ├── servico.py       # etapa 3: o cardápio
+│   │   │   └── agendamento.py   # etapa 3: cliente + barbeiro + serviço + dia e hora
 │   │   ├── schemas/             # o que entra e sai da API (Pydantic)
 │   │   │   ├── regras.py        # validações que cliente e barbeiro têm iguais
 │   │   │   ├── cliente.py
-│   │   │   └── barbeiro.py
+│   │   │   ├── barbeiro.py
+│   │   │   ├── servico.py
+│   │   │   └── agendamento.py
 │   │   ├── crud/                # as consultas no banco
-│   │   │   ├── comum.py         # duplicados, busca e paginação dos dois
+│   │   │   ├── comum.py         # duplicados, busca, paginação e "tem agendamento?"
 │   │   │   ├── cliente.py
-│   │   │   └── barbeiro.py
+│   │   │   ├── barbeiro.py
+│   │   │   ├── servico.py
+│   │   │   └── agendamento.py   # as regras da agenda e os horários livres
 │   │   └── routers/             # as rotas HTTP
 │   │       ├── clientes.py
-│   │       └── barbeiros.py
+│   │       ├── barbeiros.py
+│   │       ├── servicos.py
+│   │       └── agendamentos.py
 │   └── tests/                   # os testes do pytest
 │
 └── frontend/
@@ -500,10 +567,18 @@ projeto-faculdade/
         │   │   ├── page.tsx                  # lista de clientes
         │   │   ├── novo/page.tsx             # cadastro
         │   │   └── [id]/editar/page.tsx      # edição
-        │   └── barbeiros/
-        │       ├── page.tsx                  # a equipe (filtro "na agenda / fora da agenda")
-        │       ├── novo/page.tsx             # cadastro
-        │       └── [id]/editar/page.tsx      # edição
+        │   ├── barbeiros/
+        │   │   ├── page.tsx                  # a equipe (filtro "na agenda / fora da agenda")
+        │   │   ├── novo/page.tsx             # cadastro
+        │   │   └── [id]/editar/page.tsx      # edição
+        │   ├── servicos/
+        │   │   ├── page.tsx                  # o cardápio
+        │   │   ├── novo/page.tsx             # cadastro
+        │   │   └── [id]/editar/page.tsx      # edição
+        │   └── agendamentos/
+        │       ├── page.tsx                  # a agenda (dia ou 7 dias, concluir e cancelar na linha)
+        │       ├── novo/page.tsx             # marcar horário
+        │       └── [id]/editar/page.tsx      # remarcar e mudar a situação
         ├── components/
         │   ├── FormularioCliente.tsx         # o formulário do cliente (cria e edita)
         │   ├── FichaResumo.tsx               # o cartão que se preenche enquanto digita
@@ -512,6 +587,8 @@ projeto-faculdade/
         │   ├── JornadaSemanal.tsx            # a tabela de dias e horários
         │   ├── FichaBarbeiro.tsx             # "como o cliente vê" + disponível para agendamento
         │   ├── Retrato.tsx                   # a foto na moldura (cartão e lista)
+        │   ├── FormularioServico.tsx         # o formulário do serviço (cria e edita)
+        │   ├── FormularioAgendamento.tsx     # marcar e remarcar, com os horários livres
         │   ├── RodapeDoFormulario.tsx / Confirmacao.tsx / Opcao.tsx / Paginacao.tsx
         │   ├── MenuLateral.tsx
         │   └── Topo.tsx / Secao.tsx / Campo.tsx / Botao.tsx
@@ -581,6 +658,31 @@ Tabela **`horarios_barbeiro`** — uma linha por dia trabalhado:
 
 O par (`barbeiro_id`, `dia`) é único: o mesmo barbeiro não tem duas linhas pra terça.
 
+Tabela **`servicos`** (etapa 3):
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária |
+| `nome` | texto (60) | **obrigatório e único** (sem ligar pra maiúscula) |
+| `descricao` | texto longo | opcional |
+| `duracao` | inteiro | minutos de cadeira, de 5 em 5, até 240 |
+| `preco` | decimal (8,2) | em reais — `Numeric` e não `float`, pra conta do caixa não errar centavo |
+| `ativo` | sim/não | "no cardápio" |
+| `criado_em` / `atualizado_em` | data e hora | preenchidos pelo banco |
+
+Tabela **`agendamentos`** (etapa 3) — o que liga o cliente ao barbeiro num dia e hora:
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária |
+| `cliente_id` / `barbeiro_id` / `servico_id` | inteiro | chaves estrangeiras (o banco não deixa apagar quem tem agendamento) |
+| `data` | data | com índice — a agenda filtra por dia |
+| `hora` | hora | início do atendimento, de 5 em 5 minutos |
+| `duracao` / `preco` | inteiro / decimal | copiados do serviço na hora de marcar |
+| `status` | texto (12) | agendado / concluido / cancelado / faltou |
+| `observacoes` | texto longo | opcional |
+| `criado_em` / `atualizado_em` | data e hora | preenchidos pelo banco |
+
 Para espiar o banco por dentro:
 
 ```bash
@@ -618,6 +720,19 @@ Base: `http://localhost:8000`
 | `PUT` | `/api/barbeiros/{id}/foto` | Envia ou troca a foto (`multipart/form-data`, campo `foto`, até 2 MB) |
 | `GET` | `/api/barbeiros/{id}/foto` | Devolve a imagem — é o endereço que vai na tela |
 | `DELETE` | `/api/barbeiros/{id}/foto` | Tira a foto |
+
+| `POST` | `/api/servicos` | Cadastra um serviço |
+| `GET` | `/api/servicos` | Lista o cardápio (`?busca=`, `?ativo=true`) |
+| `GET` | `/api/servicos/{id}` | Abre um serviço |
+| `PUT` | `/api/servicos/{id}` | Edita (só os campos enviados) |
+| `DELETE` | `/api/servicos/{id}` | Exclui (só se não tiver agendamento) |
+
+| `POST` | `/api/agendamentos` | Marca um horário (`cliente_id`, `barbeiro_id`, `servico_id`, `data`, `hora`) |
+| `GET` | `/api/agendamentos` | A agenda (`?de=`, `?ate=`, `?barbeiro_id=`, `?cliente_id=`, `?status=`) |
+| `GET` | `/api/agendamentos/horarios-livres` | Horários livres (`?barbeiro_id=&servico_id=&data=`) |
+| `GET` | `/api/agendamentos/{id}` | Abre um agendamento |
+| `PUT` | `/api/agendamentos/{id}` | Remarca ou muda a situação (`"status": "concluido"`) |
+| `DELETE` | `/api/agendamentos/{id}` | Apaga (pra quando marcou errado; no dia a dia, cancele) |
 
 ### Exemplo de cadastro
 
@@ -663,7 +778,7 @@ curl -X POST http://localhost:8000/api/barbeiros \
 | `200` | Consulta ou edição deu certo |
 | `204` | Cliente excluído |
 | `404` | Não existe cliente com esse id/telefone |
-| `409` | Telefone, CPF ou e-mail já cadastrado em outra ficha |
+| `409` | Telefone, CPF ou e-mail já cadastrado em outra ficha · horário que bate numa regra da agenda · excluir quem tem agendamento |
 | `422` | Algum campo do formulário está inválido |
 
 O erro `422` vem com o campo e o motivo, para o front conseguir marcar o campo certo:

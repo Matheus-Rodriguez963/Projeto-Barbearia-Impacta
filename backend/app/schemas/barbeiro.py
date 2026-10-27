@@ -138,37 +138,17 @@ class BarbeiroAtualizar(_RegrasDoBarbeiro):
 
 # ---------------------------------------------------------------- saída
 
-class BarbeiroResposta(BaseModel):
+class BarbeiroResumo(BaseModel):
+    """O pedaço do barbeiro que aparece em outras telas (a agenda, por exemplo)."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     nome: str
     apelido: str | None
-    telefone: str
-    cpf: str
-    email: str | None
-    data_admissao: date
-    especialidades: list[str]
-    comissao: int
-    intervalo: int
     cor_agenda: str
-    horarios: list[HorarioResposta]
-    ativo: bool
-    observacoes: str | None
-    criado_em: datetime | None
-    atualizado_em: datetime | None
     # só pra montar o foto_url; os bytes da foto nunca vão no JSON
     foto_atualizada_em: datetime | None = Field(default=None, exclude=True)
-
-    @computed_field
-    @property
-    def telefone_formatado(self) -> str:
-        return formatar_telefone(self.telefone)
-
-    @computed_field
-    @property
-    def cpf_formatado(self) -> str:
-        return formatar_cpf(self.cpf)
 
     @computed_field
     @property
@@ -183,6 +163,31 @@ class BarbeiroResposta(BaseModel):
     def nome_de_chamada(self) -> str:
         # é esse que vai pro "barbeiro preferido" da ficha do cliente
         return self.apelido or self.nome.split()[0]
+
+
+class BarbeiroResposta(BarbeiroResumo):
+    telefone: str
+    cpf: str
+    email: str | None
+    data_admissao: date
+    especialidades: list[str]
+    comissao: int
+    intervalo: int
+    horarios: list[HorarioResposta]
+    ativo: bool
+    observacoes: str | None
+    criado_em: datetime | None
+    atualizado_em: datetime | None
+
+    @computed_field
+    @property
+    def telefone_formatado(self) -> str:
+        return formatar_telefone(self.telefone)
+
+    @computed_field
+    @property
+    def cpf_formatado(self) -> str:
+        return formatar_cpf(self.cpf)
 
 
 class BarbeiroLista(BaseModel):
