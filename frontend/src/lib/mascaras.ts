@@ -109,3 +109,28 @@ export function conferirIdentificacao(dados: { nome: string; telefone: string; c
 
   return problemas;
 }
+
+/** 45.5 -> "R$ 45,50" */
+export function reais(valor: number): string {
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+/** 75 -> "1h15"; 45 -> "45 min" */
+export function duracaoBonita(minutos: number): string {
+  if (minutos < 60) return `${minutos} min`;
+  const resto = minutos % 60;
+  return `${Math.floor(minutos / 60)}h${resto ? String(resto).padStart(2, "0") : ""}`;
+}
+
+/** A data de hoje (ou daqui a N dias) no formato da API, "2026-10-28", no fuso de quem está usando. */
+export function diaISO(daquiA = 0, base = new Date()): string {
+  const dia = new Date(base.getFullYear(), base.getMonth(), base.getDate() + daquiA);
+  const mes = String(dia.getMonth() + 1).padStart(2, "0");
+  return `${dia.getFullYear()}-${mes}-${String(dia.getDate()).padStart(2, "0")}`;
+}
+
+/** "2026-10-28" -> "quarta, 28 de outubro" */
+export function diaPorExtenso(data: string): string {
+  const [ano, mes, dia] = data.split("-").map(Number);
+  return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+}

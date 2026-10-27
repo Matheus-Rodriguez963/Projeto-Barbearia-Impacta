@@ -134,3 +134,75 @@ export interface ListaDeBarbeiros {
   total: number;
   itens: Barbeiro[];
 }
+
+// ---------------------------------------------------------------- etapa 3: serviços e agenda
+
+export interface Servico {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  duracao: number; // minutos de cadeira
+  preco: number; // em reais: 45.5
+  ativo: boolean; // "no cardápio"
+  criado_em: string | null;
+  atualizado_em: string | null;
+}
+
+export interface DadosDoServico {
+  nome: string;
+  descricao?: string | null;
+  duracao: number;
+  preco: number;
+  ativo?: boolean;
+}
+
+export interface ListaDeServicos {
+  total: number;
+  itens: Servico[];
+}
+
+// mesma lista do schemas/agendamento.py; o nome é como aparece na tela
+export const STATUS_DO_AGENDAMENTO = [
+  { chave: "agendado", nome: "Agendado" },
+  { chave: "concluido", nome: "Concluído" },
+  { chave: "cancelado", nome: "Cancelado" },
+  { chave: "faltou", nome: "Faltou" },
+] as const;
+
+export type StatusDoAgendamento = (typeof STATUS_DO_AGENDAMENTO)[number]["chave"];
+
+export interface Agendamento {
+  id: number;
+  data: string; // "2026-10-28"
+  hora: string; // "14:30:00"
+  hora_fim: string; // a API já soma a duração
+  duracao: number;
+  preco: number; // o preço combinado na hora de marcar
+  status: StatusDoAgendamento;
+  observacoes: string | null;
+  cliente: { id: number; nome: string; apelido: string | null; telefone_formatado: string };
+  barbeiro: { id: number; nome: string; nome_de_chamada: string; cor_agenda: CorDaAgenda; foto_url: string | null };
+  servico: { id: number; nome: string };
+  criado_em: string | null;
+  atualizado_em: string | null;
+}
+
+export interface DadosDoAgendamento {
+  cliente_id: number;
+  barbeiro_id: number;
+  servico_id: number;
+  data: string;
+  hora: string; // "14:30"
+  observacoes?: string | null;
+}
+
+export interface ListaDeAgendamentos {
+  total: number;
+  itens: Agendamento[];
+}
+
+export interface HorariosLivres {
+  data: string;
+  horarios: string[]; // "09:00", "09:15"...
+  motivo: string | null; // quando não sobra horário, o porquê
+}
