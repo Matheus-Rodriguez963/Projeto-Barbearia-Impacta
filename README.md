@@ -507,6 +507,14 @@ oferece um horário que a API depois recusaria. A lista anda de 15 em 15 minutos
 Cancelar e "faltou" liberam o horário, mas o agendamento fica no histórico (dá até pra ver quem
 mais falta). Excluir de verdade é só pra quando marcou errado.
 
+**As fontes ficam dentro do projeto.**
+Antes elas vinham do `next/font/google`, que baixa do Google Fonts toda vez que o site compila.
+Um dia o Google devolveu a Oswald num endereço que o Turbopack não consegue ler, e o site parou
+de abrir com o erro `next/font/google queries have exactly one entry`. Agora os três arquivos
+`.woff2` estão em `frontend/src/app/fontes/` e são carregados com `next/font/local`: o site
+compila igual sempre, mesmo sem internet. As três fontes são de licença livre (SIL OFL), e a
+licença de cada uma está na mesma pasta.
+
 **O menu lateral só mostra o que funciona.**
 Nada de item desabilitado como prévia das próximas etapas: botão que não faz nada só
 engana quem está usando. Cada item entra quando a funcionalidade dele ficar pronta.
@@ -563,6 +571,7 @@ projeto-faculdade/
         ├── app/
         │   ├── layout.tsx                    # moldura: menu lateral + área de trabalho
         │   ├── globals.css                   # a paleta da barbearia no Tailwind
+        │   ├── fontes/                       # Bodoni Moda, Oswald e Karla (.woff2) + licença OFL de cada uma
         │   ├── clientes/
         │   │   ├── page.tsx                  # lista de clientes
         │   │   ├── novo/page.tsx             # cadastro
