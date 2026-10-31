@@ -85,6 +85,9 @@ export type CorDaAgenda = (typeof CORES_DA_AGENDA)[number]["chave"];
 
 export const INTERVALOS = [0, 5, 10, 15] as const;
 
+// etapa 3: quanto tempo o almoço pode durar (as mesmas opções do schemas/barbeiro.py)
+export const DURACOES_DO_ALMOCO = [30, 45, 60, 90] as const;
+
 export interface HorarioDoDia {
   dia: DiaDaSemana;
   entrada: string; // a API devolve "09:00:00" e aceita "09:00"
@@ -103,6 +106,8 @@ export interface Barbeiro {
   comissao: number;
   intervalo: number;
   cor_agenda: CorDaAgenda;
+  almoco: string | null; // "12:00:00"; null = não para pra almoçar
+  almoco_duracao: number; // minutos
   horarios: HorarioDoDia[]; // só os dias trabalhados; o que não está aqui é folga
   ativo: boolean; // "disponível para agendamento"
   observacoes: string | null;
@@ -125,6 +130,8 @@ export interface DadosDoBarbeiro {
   comissao?: number;
   intervalo?: number;
   cor_agenda?: CorDaAgenda;
+  almoco?: string | null;
+  almoco_duracao?: number;
   horarios: HorarioDoDia[];
   ativo?: boolean;
   observacoes?: string | null;
@@ -133,4 +140,81 @@ export interface DadosDoBarbeiro {
 export interface ListaDeBarbeiros {
   total: number;
   itens: Barbeiro[];
+}
+
+// ---------------------------------------------------------------- etapa 3: serviços
+
+export interface Servico {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  duracao: number; // minutos
+  preco: number; // em reais, ex: 55
+  ativo: boolean; // "no cardápio"
+  criado_em: string | null;
+  atualizado_em: string | null;
+}
+
+export interface DadosDoServico {
+  nome: string;
+  descricao?: string | null;
+  duracao: number;
+  preco: number;
+  ativo?: boolean;
+}
+
+export interface ListaDeServicos {
+  total: number;
+  itens: Servico[];
+}
+
+// ---------------------------------------------------------------- etapa 3: agendamento
+
+export type Situacao = "agendado" | "concluido" | "faltou" | "cancelado";
+
+export interface Agendamento {
+  id: number;
+  data: string; // "2026-11-03"
+  inicio: string; // "14:30:00"
+  fim: string;
+  situacao: Situacao;
+  cliente: { id: number; nome: string; apelido: string | null; telefone: string; telefone_formatado: string };
+  barbeiro: {
+    id: number;
+    nome: string;
+    apelido: string | null;
+    cor_agenda: CorDaAgenda;
+    intervalo: number;
+    almoco: string | null;
+    almoco_duracao: number;
+    nome_de_chamada: string;
+  };
+  // o preço e a duração são os do dia em que foi marcado, não os de hoje
+  servicos: { servico_id: number; nome: string; duracao: number; preco: number }[];
+  total: number;
+  duracao: number;
+  criado_em: string | null;
+  atualizado_em: string | null;
+}
+
+export interface DadosDoAgendamento {
+  cliente_id: number;
+  barbeiro_id: number;
+  servicos: number[];
+  data: string;
+  inicio: string; // "14:30"
+}
+
+export interface GradeDoDia {
+  trabalha: boolean;
+  entrada: string | null;
+  saida: string | null;
+  horarios: { hora: string; livre: boolean }[];
+}
+
+// um quadradinho do calendário da agenda
+export interface DiaDoMes {
+  data: string;
+  trabalha: boolean; // alguém da equipe trabalha nesse dia da semana
+  ocupacao: number; // 0 a 100
 }

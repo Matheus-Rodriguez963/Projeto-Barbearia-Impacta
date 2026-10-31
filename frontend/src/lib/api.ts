@@ -2,13 +2,21 @@
 // eu mexo num lugar só.
 
 import type {
+  Agendamento,
   Barbeiro,
   Cliente,
+  DadosDoAgendamento,
   DadosDoBarbeiro,
   DadosDoCliente,
+  DadosDoServico,
+  DiaDoMes,
   ErroDeCampo,
+  GradeDoDia,
   ListaDeBarbeiros,
   ListaDeClientes,
+  ListaDeServicos,
+  Servico,
+  Situacao,
 } from "./tipos";
 
 const URL_DA_API = process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000";
@@ -142,4 +150,70 @@ export function removerFotoBarbeiro(id: number) {
 
 export function excluirBarbeiro(id: number) {
   return requisitar<void>(`/api/barbeiros/${id}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------- serviços (etapa 3)
+
+/** ativo: true = só o que está no cardápio, undefined = todos */
+export function listarServicos(busca = "", pagina = 1, tamanho = 20, ativo?: boolean) {
+  const parametros = new URLSearchParams({ pagina: String(pagina), tamanho: String(tamanho) });
+  if (busca.trim()) parametros.set("busca", busca.trim());
+  if (ativo !== undefined) parametros.set("ativo", String(ativo));
+
+  return requisitar<ListaDeServicos>(`/api/servicos?${parametros}`);
+}
+
+export function buscarServico(id: number) {
+  return requisitar<Servico>(`/api/servicos/${id}`);
+}
+
+export function cadastrarServico(dados: DadosDoServico) {
+  return requisitar<Servico>("/api/servicos", { method: "POST", body: JSON.stringify(dados) });
+}
+
+export function atualizarServico(id: number, dados: Partial<DadosDoServico>) {
+  return requisitar<Servico>(`/api/servicos/${id}`, { method: "PUT", body: JSON.stringify(dados) });
+}
+
+export function excluirServico(id: number) {
+  return requisitar<void>(`/api/servicos/${id}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------- agendamentos (etapa 3)
+
+/** A agenda inteira de um dia ("2026-11-03"), inclusive os cancelados. */
+export function agendaDoDia(data: string) {
+  return requisitar<Agendamento[]>(`/api/agendamentos?data=${data}`);
+}
+
+export function buscarAgendamento(id: number) {
+  return requisitar<Agendamento>(`/api/agendamentos/${id}`);
+}
+
+/** Os horários que dá pra oferecer. ignorar = o próprio agendamento, quando é remarcação. */
+export function horariosLivres(barbeiroId: number, data: string, duracao: number, ignorar?: number) {
+  const parametros = new URLSearchParams({ barbeiro_id: String(barbeiroId), data, duracao: String(duracao) });
+  if (ignorar !== undefined) parametros.set("ignorar", String(ignorar));
+
+  return requisitar<GradeDoDia>(`/api/agendamentos/horarios?${parametros}`);
+}
+
+export function marcarAgendamento(dados: DadosDoAgendamento) {
+  return requisitar<Agendamento>("/api/agendamentos", { method: "POST", body: JSON.stringify(dados) });
+}
+
+export function remarcarAgendamento(id: number, dados: DadosDoAgendamento) {
+  return requisitar<Agendamento>(`/api/agendamentos/${id}`, { method: "PUT", body: JSON.stringify(dados) });
+}
+
+export function mudarSituacao(id: number, situacao: Exclude<Situacao, "agendado">) {
+  return requisitar<Agendamento>(`/api/agendamentos/${id}/situacao`, {
+    method: "PUT",
+    body: JSON.stringify({ situacao }),
+  });
+}
+
+/** Quanto cada dia do mês está ocupado, pras barrinhas do calendário. */
+export function ocupacaoDoMes(ano: number, mes: number) {
+  return requisitar<DiaDoMes[]>(`/api/agendamentos/ocupacao?ano=${ano}&mes=${mes}`);
 }
