@@ -207,6 +207,9 @@ export default function PaginaBarbeiros() {
                     <td className="px-4 py-3.5 text-[14px] whitespace-nowrap text-tinta-media">
                       {horario.principal}
                       {horario.excecoes && <div className="text-[12px] text-tinta-fraca">{horario.excecoes}</div>}
+                      {barbeiro.almoco && (
+                        <div className="text-[12px] text-tinta-fraca">almoço {horaCurta(barbeiro.almoco)}</div>
+                      )}
                     </td>
                     <td className="px-4 py-3.5 text-[14px] text-tinta-media">{barbeiro.comissao}%</td>
                     <td className="px-4 py-3.5 text-right">

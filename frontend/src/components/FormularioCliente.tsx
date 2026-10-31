@@ -13,7 +13,7 @@ import FichaResumo from "@/components/FichaResumo";
 import Opcao, { GrupoDeOpcoes } from "@/components/Opcao";
 import RodapeDoFormulario from "@/components/RodapeDoFormulario";
 import Secao from "@/components/Secao";
-import { atualizarCliente, cadastrarCliente, excluirCliente, lerErroDoFormulario, listarBarbeiros } from "@/lib/api";
+import { atualizarCliente, cadastrarCliente, ErroDaApi, excluirCliente, lerErroDoFormulario, listarBarbeiros } from "@/lib/api";
 import { conferirIdentificacao, mascaraCpf, mascaraTelefone, soNumeros } from "@/lib/mascaras";
 import { ORIGENS, type Cliente, type DadosDoCliente, type Origem } from "@/lib/tipos";
 import { useFormulario } from "@/lib/useFormulario";
@@ -142,8 +142,9 @@ export default function FormularioCliente({ clienteExistente }: { clienteExisten
       await excluirCliente(clienteExistente.id);
       navegador.push("/clientes");
       navegador.refresh();
-    } catch {
-      setAviso("Não consegui excluir esse cadastro.");
+    } catch (erro) {
+      // na etapa 3 o motivo mais comum é ter agendamento, e a API explica o que fazer
+      setAviso(erro instanceof ErroDaApi ? erro.message : "Não consegui excluir esse cadastro.");
       setSalvando(false);
     }
   }

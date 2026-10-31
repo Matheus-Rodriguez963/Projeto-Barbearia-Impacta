@@ -15,7 +15,15 @@ import JornadaSemanal from "@/components/JornadaSemanal";
 import Opcao, { GrupoDeOpcoes } from "@/components/Opcao";
 import RodapeDoFormulario from "@/components/RodapeDoFormulario";
 import Secao from "@/components/Secao";
-import { atualizarBarbeiro, cadastrarBarbeiro, enderecoDaFoto, excluirBarbeiro, lerErroDoFormulario } from "@/lib/api";
+import {
+  atualizarBarbeiro,
+  cadastrarBarbeiro,
+  ErroDaApi,
+  enderecoDaFoto,
+  excluirBarbeiro,
+  lerErroDoFormulario,
+} from "@/lib/api";
+import { almocoNoDia, emMinutos } from "@/lib/agenda";
 import { conferirIdentificacao, mascaraCpf, mascaraTelefone, soNumeros } from "@/lib/mascaras";
 import {
   diasComHorarioErrado,
@@ -28,6 +36,7 @@ import {
 } from "@/lib/semana";
 import {
   CORES_DA_AGENDA,
+  DURACOES_DO_ALMOCO,
   ESPECIALIDADES,
   INTERVALOS,
   type Barbeiro,
@@ -50,6 +59,8 @@ interface Formulario {
   intervalo: number;
   cor_agenda: CorDaAgenda;
   semana: Semana;
+  almoco: string; // "12:00", ou vazio se ele não para pra almoçar
+  almoco_duracao: number;
   ativo: boolean;
 }
 
@@ -68,6 +79,8 @@ function formularioVazio(): Formulario {
     intervalo: 5,
     cor_agenda: "terracota",
     semana: semanaPadrao(),
+    almoco: "",
+    almoco_duracao: 60,
     ativo: true,
   };
 }
@@ -85,6 +98,8 @@ function preencherCom(barbeiro: Barbeiro): Formulario {
     intervalo: barbeiro.intervalo,
     cor_agenda: barbeiro.cor_agenda,
     semana: semanaDe(barbeiro.horarios),
+    almoco: barbeiro.almoco?.slice(0, 5) ?? "",
+    almoco_duracao: barbeiro.almoco_duracao,
     ativo: barbeiro.ativo,
   };
 }
@@ -114,6 +129,16 @@ function conferirCampos(dados: Formulario): Record<string, string> {
   } else if (diasComHorarioErrado(dados.semana).length > 0) {
     problemas.horarios = "Nos dias marcados em vermelho, a saída tem que ser depois da entrada.";
   }
+  // almoço que não cai dentro de nenhum dia de trabalho não serviria pra nada
+  if (
+    dados.almoco &&
+    !problemas.horarios &&
+    !horariosDa(dados.semana).some((h) =>
+      almocoNoDia(dados.almoco, dados.almoco_duracao, emMinutos(h.entrada), emMinutos(h.saida)),
+    )
+  ) {
+    problemas.almoco = "Esse almoço não cai no meio de nenhum dia de trabalho.";
+  }
 
   return problemas;
 }
@@ -132,6 +157,8 @@ function montarEnvio(dados: Formulario): DadosDoBarbeiro {
     intervalo: dados.intervalo,
     cor_agenda: dados.cor_agenda,
     horarios: horariosDa(dados.semana),
+    almoco: dados.almoco || null, // em branco tira o almoço
+    almoco_duracao: dados.almoco_duracao,
     ativo: dados.ativo,
   };
 }
@@ -144,6 +171,7 @@ const NOMES_DOS_CAMPOS: Record<string, string> = {
   comissao: "comissão",
   cor_agenda: "cor",
   horarios: "dias e horários",
+  almoco: "almoço",
 };
 
 export default function FormularioBarbeiro({ barbeiroExistente }: { barbeiroExistente?: Barbeiro }) {
@@ -218,8 +246,9 @@ export default function FormularioBarbeiro({ barbeiroExistente }: { barbeiroExis
       await excluirBarbeiro(barbeiroExistente.id);
       navegador.push("/barbeiros");
       navegador.refresh();
-    } catch {
-      setAviso("Não consegui excluir esse cadastro.");
+    } catch (erro) {
+      // na etapa 3 o motivo mais comum é ter agendamento, e a API explica o que fazer
+      setAviso(erro instanceof ErroDaApi ? erro.message : "Não consegui excluir esse cadastro.");
       setSalvando(false);
     }
   }
@@ -419,6 +448,38 @@ export default function FormularioBarbeiro({ barbeiroExistente }: { barbeiroExis
           <Secao titulo="Dias e horários" />
 
           <JornadaSemanal semana={dados.semana} diasComErro={diasComErro} erro={erros.horarios} onMudarDia={mudarDia} />
+
+          {/* etapa 3: o almoço vale pra semana toda e a agenda não deixa marcar nele */}
+          <div className="mt-6 grid grid-cols-1 items-end gap-x-6 gap-y-5 sm:grid-cols-3">
+            <Campo rotulo="Almoço" opcional erro={erros.almoco}>
+              <input
+                type="time"
+                step={300}
+                value={dados.almoco}
+                onChange={(e) => mudar("almoco", e.target.value)}
+                className={classeInputComErro(Boolean(erros.almoco))}
+              />
+            </Campo>
+
+            <Campo rotulo="Duração do almoço" erro={erros.almoco_duracao}>
+              <Seletor
+                temErro={Boolean(erros.almoco_duracao)}
+                disabled={!dados.almoco}
+                value={dados.almoco_duracao}
+                onChange={(e) => mudar("almoco_duracao", Number(e.target.value))}
+              >
+                {DURACOES_DO_ALMOCO.map((minutos) => (
+                  <option key={minutos} value={minutos}>
+                    {minutos === 90 ? "1h30" : minutos === 60 ? "1 hora" : `${minutos} min`}
+                  </option>
+                ))}
+              </Seletor>
+            </Campo>
+
+            <p className="m-0 pb-3 text-[12px] leading-snug text-tinta-fraca">
+              Vale pra semana toda. Num dia que acaba antes do fim do almoço, ele não conta. Em branco, não para.
+            </p>
+          </div>
         </div>
 
         <FichaBarbeiro
