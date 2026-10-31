@@ -108,3 +108,14 @@ def barbeiro_valido():
         ],
         "observacoes": "Só ele faz a barba na toalha quente.",
     }
+
+
+@pytest.fixture
+def servico_valido():
+    """Um serviço do cardápio, pros testes da etapa 3."""
+    return {
+        "nome": "Corte clássico",
+        "descricao": "Tesoura e máquina, lavagem e finalização",
+        "duracao": 45,
+        "preco": "55.00",
+    }
