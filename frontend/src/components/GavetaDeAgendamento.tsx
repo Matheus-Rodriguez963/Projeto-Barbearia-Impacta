@@ -71,6 +71,9 @@ export default function GavetaDeAgendamento({ lugar, data, ocupados, cardapio, o
       )
     : undefined;
 
+  // se já dá pra ver que não cabe, o botão de confirmar nem fica ativo
+  const naoCabe = passaDaSaida || caiNoAlmoco || Boolean(bate);
+
   async function confirmar() {
     if (!cliente || servicos.length === 0) return;
     setSalvando(true);
@@ -202,7 +205,7 @@ export default function GavetaDeAgendamento({ lugar, data, ocupados, cardapio, o
           <Botao
             type="button"
             estilo="principal"
-            disabled={!cliente || servicos.length === 0 || salvando}
+            disabled={!cliente || servicos.length === 0 || naoCabe || salvando}
             onClick={confirmar}
           >
             {salvando ? "Marcando..." : "Confirmar horário"}
