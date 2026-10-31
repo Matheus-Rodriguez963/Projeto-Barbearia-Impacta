@@ -13,6 +13,24 @@ def _um_dia(dia="seg", entrada="09:00", saida="18:00"):
 
 # ---------------------------------------------------------------- cadastrar
 
+def test_almoco_e_opcional_e_pode_ser_tirado(cliente_api, barbeiro_valido):
+    sem = cliente_api.post(ROTA, json=barbeiro_valido).json()
+    assert sem["almoco"] is None
+    assert sem["almoco_duracao"] == 60
+
+    com = cliente_api.put(f"{ROTA}/{sem['id']}", json={"almoco": "12:30", "almoco_duracao": 45}).json()
+    assert com["almoco"] == "12:30:00"
+    assert com["almoco_duracao"] == 45
+
+    tirado = cliente_api.put(f"{ROTA}/{sem['id']}", json={"almoco": None}).json()
+    assert tirado["almoco"] is None
+
+
+def test_recusa_almoco_quebrado_ou_duracao_fora_das_opcoes(cliente_api, barbeiro_valido):
+    assert cliente_api.post(ROTA, json={**barbeiro_valido, "almoco": "12:07"}).status_code == 422
+    assert cliente_api.post(ROTA, json={**barbeiro_valido, "almoco": "12:00", "almoco_duracao": 20}).status_code == 422
+
+
 def test_cadastra_barbeiro_completo(cliente_api, barbeiro_valido):
     resposta = cliente_api.post(ROTA, json=barbeiro_valido)
     assert resposta.status_code == 201

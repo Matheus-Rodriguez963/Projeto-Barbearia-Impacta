@@ -10,7 +10,7 @@ from app.models.barbeiro import Barbeiro, HorarioBarbeiro
 from app.schemas.barbeiro import BarbeiroAtualizar, BarbeiroCriar, HorarioDoDia
 
 # esses podem ser apagados na edição; os outros, se vierem como null, eu ignoro
-CAMPOS_QUE_PODEM_FICAR_VAZIOS = {"apelido", "email", "observacoes"}
+CAMPOS_QUE_PODEM_FICAR_VAZIOS = {"apelido", "email", "observacoes", "almoco"}
 
 
 def _montar_horarios(horarios: list[HorarioDoDia]) -> list[HorarioBarbeiro]:

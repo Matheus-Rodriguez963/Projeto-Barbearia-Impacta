@@ -13,6 +13,7 @@ Especialidade = Literal["Corte clássico", "Degradê", "Barba na navalha", "Toal
 DiaDaSemana = Literal["seg", "ter", "qua", "qui", "sex", "sab", "dom"]
 CorDaAgenda = Literal["terracota", "oliva", "latao", "petroleo"]
 Intervalo = Literal[0, 5, 10, 15]  # minutos; 0 é "Nenhum"
+DuracaoDoAlmoco = Literal[30, 45, 60, 90]
 
 # uso essas ordens pra guardar sempre do mesmo jeito, não importa a ordem do clique
 ORDEM_DOS_DIAS = list(DiaDaSemana.__args__)
@@ -33,6 +34,13 @@ def _admissao(valor: date | None) -> date | None:
         raise ValueError("a data de admissão não pode estar no futuro")
     if valor.year < 1962:
         raise ValueError("data de admissão muito antiga, confira o ano")
+    return valor
+
+
+def _almoco(valor: time | None) -> time | None:
+    # a agenda anda de 5 em 5 minutos, então o almoço também
+    if valor is not None and (valor.minute % 5 or valor.second):
+        raise ValueError("o almoço começa de 5 em 5 minutos (12:00, 12:30...)")
     return valor
 
 
@@ -97,6 +105,7 @@ class _RegrasDoBarbeiro(BaseModel):
     _valida_cpf = field_validator("cpf", check_fields=False)(regras.cpf)
     _valida_admissao = field_validator("data_admissao", check_fields=False)(_admissao)
     _valida_especialidades = field_validator("especialidades", check_fields=False)(_especialidades)
+    _valida_almoco = field_validator("almoco", check_fields=False)(_almoco)
     _valida_horarios = field_validator("horarios", check_fields=False)(_horarios)
 
 
@@ -113,6 +122,8 @@ class BarbeiroCriar(_RegrasDoBarbeiro):
     comissao: Annotated[int, Field(default=40, ge=0, le=100, description="Porcentagem que fica com o barbeiro")]
     intervalo: Intervalo = 5
     cor_agenda: CorDaAgenda = "terracota"
+    almoco: time | None = Field(default=None, description="Ex: 12:00. Vazio = sem almoço")
+    almoco_duracao: DuracaoDoAlmoco = 60
     horarios: list[HorarioDoDia]
     ativo: bool = True
     observacoes: str | None = None
@@ -131,6 +142,8 @@ class BarbeiroAtualizar(_RegrasDoBarbeiro):
     comissao: Annotated[int | None, Field(default=None, ge=0, le=100)]
     intervalo: Intervalo | None = None
     cor_agenda: CorDaAgenda | None = None
+    almoco: time | None = None
+    almoco_duracao: DuracaoDoAlmoco | None = None
     horarios: list[HorarioDoDia] | None = None
     ativo: bool | None = None
     observacoes: str | None = None
@@ -152,6 +165,8 @@ class BarbeiroResposta(BaseModel):
     comissao: int
     intervalo: int
     cor_agenda: str
+    almoco: time | None
+    almoco_duracao: int
     horarios: list[HorarioResposta]
     ativo: bool
     observacoes: str | None

@@ -70,6 +70,11 @@ class Barbeiro(Base):
     # a cor que vai pintar os horários dele na agenda
     cor_agenda: Mapped[str] = mapped_column(String(20), nullable=False, default="terracota")
 
+    # etapa 3: o almoço. Um horário só pra semana toda (é assim que a casa combina), e a
+    # agenda não deixa marcar cliente nesse intervalo. Sem horário = não para pra almoçar.
+    almoco: Mapped[time | None] = mapped_column(Time)
+    almoco_duracao: Mapped[int] = mapped_column(Integer, nullable=False, default=60, server_default="60")
+
     # "disponível para agendamento": desliga em férias ou afastamento.
     # barbeiro que saiu também fica desligado em vez de apagado.
     ativo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
