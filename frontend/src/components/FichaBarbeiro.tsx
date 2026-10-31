@@ -2,6 +2,7 @@
 // e a chave de disponível para agendamento.
 // O cartão é só visual (vai mudando enquanto digito); a chave muda o formulário pelo onMudarAtivo.
 
+import Chave from "@/components/Chave";
 import Retrato from "@/components/Retrato";
 import Secao from "@/components/Secao";
 import { mesEAno } from "@/lib/mascaras";
@@ -70,32 +71,13 @@ export default function FichaBarbeiro(props: Props) {
         <div className={`mt-0.5 h-1 w-full ${faixa}`} />
       </div>
 
-      <div className="flex items-center justify-between gap-4 border border-mogno/20 bg-papel-claro px-3.5 py-3.5">
-        <div className="flex flex-col gap-1">
-          <span id="rotulo-disponivel" className="text-[13px] text-tinta">
-            Disponível para agendamento
-          </span>
-          <span className="text-[11px] leading-snug text-tinta-fraca">Desligue em férias ou afastamento.</span>
-        </div>
-
-        {/* role="switch" faz o leitor de tela anunciar como liga/desliga, não como botão comum */}
-        <button
-          type="button"
-          role="switch"
-          aria-checked={ativo}
-          aria-labelledby="rotulo-disponivel"
-          onClick={() => onMudarAtivo(!ativo)}
-          className={`relative h-5 w-8 shrink-0 cursor-pointer border transition-colors ${
-            ativo ? "border-oliva bg-oliva" : "border-mogno/30 bg-papel"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 size-3.5 transition-all ${
-              ativo ? "left-3.75 bg-creme" : "left-0.5 bg-tinta-fraca"
-            }`}
-          />
-        </button>
-      </div>
+      <Chave
+        id="rotulo-disponivel"
+        rotulo="Disponível para agendamento"
+        dica="Desligue em férias ou afastamento."
+        ligada={ativo}
+        onMudar={onMudarAtivo}
+      />
     </aside>
   );
 }
