@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import pegar_sessao
+from app.core.erros import RegistroEmUso
+from app.crud import agendamento as crud_agendamento
 from app.crud import cliente as crud
 from app.models.cliente import Cliente
 from app.schemas.cliente import ClienteAtualizar, ClienteCriar, ClienteLista, ClienteResposta
@@ -65,5 +67,8 @@ def editar(cliente_id: int, dados: ClienteAtualizar, sessao: Session = Depends(p
 @roteador.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir o cadastro")
 def excluir(cliente_id: int, sessao: Session = Depends(pegar_sessao)):
     cliente = _pegar_cliente_ou_404(cliente_id, sessao)
+    # etapa 3: cliente com horário marcado (ou já atendido) não some, senão a agenda fica órfã
+    if crud_agendamento.tem_agendamentos(sessao, cliente_id=cliente.id):
+        raise RegistroEmUso("Esse cliente tem agendamentos. Cancele os horários dele antes, ou mantenha a ficha.")
     crud.remover(sessao, cliente)
     # 204 não devolve corpo nenhum

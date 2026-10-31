@@ -12,10 +12,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import config
-from app.core.database import Base, engine
-from app.core.erros import RegistroDuplicado
-from app.models import Barbeiro, Cliente  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
-from app.routers import barbeiros, clientes
+from app.core.database import Base, acrescentar_colunas_novas, engine
+from app.core.erros import RegistroDuplicado, RegistroEmUso, RegraDaAgenda
+from app.models import Agendamento, Barbeiro, Cliente, Servico  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
+from app.routers import agendamentos, barbeiros, clientes, servicos
 
 
 @asynccontextmanager
@@ -23,6 +23,7 @@ async def ciclo_de_vida(app: FastAPI):
     """Roda uma vez quando a API sobe: garante que as tabelas existem."""
     try:
         Base.metadata.create_all(bind=engine)
+        acrescentar_colunas_novas(engine)
         print("Banco conectado e tabelas prontas.")
     except Exception as erro:  # normalmente é o Postgres que não está de pé
         print("\n[ERRO] Não consegui falar com o banco.")
@@ -35,8 +36,8 @@ async def ciclo_de_vida(app: FastAPI):
 
 app = FastAPI(
     title="Barbearia Dom Alfredo — API",
-    description="Etapa 1: cadastro de clientes · Etapa 2: cadastro de barbeiros.",
-    version="2.0.0",
+    description="Etapa 1: clientes · Etapa 2: barbeiros · Etapa 3: serviços e agendamento.",
+    version="3.0.0",
     lifespan=ciclo_de_vida,
 )
 
@@ -57,6 +58,22 @@ async def tratar_duplicado(request: Request, erro: RegistroDuplicado):
         status_code=status.HTTP_409_CONFLICT,
         content={"detail": str(erro), "campo": erro.campo},
     )
+
+
+@app.exception_handler(RegraDaAgenda)
+async def tratar_regra_da_agenda(request: Request, erro: RegraDaAgenda):
+    """Horário que bate com outro, fora do expediente... Também é 409, e no mesmo formato
+    do duplicado ({detail, campo}), então o front já sabe pintar o campo sem mudar nada."""
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"detail": str(erro), "campo": erro.campo},
+    )
+
+
+@app.exception_handler(RegistroEmUso)
+async def tratar_em_uso(request: Request, erro: RegistroEmUso):
+    """Apagar algo que um agendamento ainda usa: 409 com a explicação do que fazer no lugar."""
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": str(erro)})
 
 
 @app.exception_handler(RequestValidationError)
@@ -84,6 +101,8 @@ async def tratar_validacao(request: Request, erro: RequestValidationError):
 
 app.include_router(clientes.roteador)
 app.include_router(barbeiros.roteador)
+app.include_router(servicos.roteador)
+app.include_router(agendamentos.roteador)
 
 
 @app.get("/", tags=["Status"], summary="Só pra saber se a API está de pé")

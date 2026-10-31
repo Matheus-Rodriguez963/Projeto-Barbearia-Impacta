@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, Up
 from sqlalchemy.orm import Session
 
 from app.core.database import pegar_sessao
+from app.core.erros import RegistroEmUso
+from app.crud import agendamento as crud_agendamento
 from app.crud import barbeiro as crud
 from app.models.barbeiro import Barbeiro
 from app.schemas.barbeiro import BarbeiroAtualizar, BarbeiroCriar, BarbeiroLista, BarbeiroResposta
@@ -101,4 +103,8 @@ def remover_foto(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
 @roteador.delete("/{barbeiro_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir o cadastro")
 def excluir(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
     barbeiro = _pegar_barbeiro_ou_404(barbeiro_id, sessao)
+    # etapa 3: é o que a chave "disponível para agendamento" já previa — quem tem
+    # atendimento na agenda é desligado, não apagado
+    if crud_agendamento.tem_agendamentos(sessao, barbeiro_id=barbeiro.id):
+        raise RegistroEmUso("Esse barbeiro tem agendamentos. Desligue o \"disponível para agendamento\" em vez de excluir.")
     crud.remover(sessao, barbeiro)
