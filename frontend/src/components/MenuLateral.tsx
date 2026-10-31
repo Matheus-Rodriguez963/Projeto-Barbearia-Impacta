@@ -6,12 +6,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Só entra aqui o que já funciona de verdade. Serviços, Agenda e Caixa
-// aparecem quando as próximas etapas ficarem prontas — botão que não faz nada
-// só engana quem está usando. Barbeiros entrou na etapa 2.
+// Só entra aqui o que já funciona de verdade. O Caixa aparece quando a etapa dele
+// ficar pronta — botão que não faz nada só engana quem está usando.
+// Barbeiros entrou na etapa 2; Agenda e Serviços na etapa 3 (a agenda vai em cima
+// porque é a tela que a recepção deixa aberta o dia todo).
 const ITENS = [
+  { nome: "Agenda", caminho: "/agenda" },
   { nome: "Clientes", caminho: "/clientes" },
   { nome: "Barbeiros", caminho: "/barbeiros" },
+  { nome: "Serviços", caminho: "/servicos" },
 ];
 
 export default function MenuLateral() {
