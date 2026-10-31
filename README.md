@@ -29,17 +29,17 @@ não passa:
 ![Validação do CPF](docs/imagens/validacao-do-cpf.jpg)
 
 **Equipe de barbeiros** — com a foto, a cor de cada um na agenda e o horário da semana
-(quando um dia foge do padrão, ele aparece embaixo):
+(quando um dia foge do padrão, ele aparece embaixo, junto com o almoço):
 
 ![Lista de barbeiros](docs/imagens/lista-de-barbeiros.jpg)
 
-**Cadastro de barbeiro** — cada dia tem o próprio horário, e o cartão da direita mostra como
-o cliente vai ver o barbeiro:
+**Cadastro de barbeiro** — cada dia tem o próprio horário, o almoço vale pra semana toda, e o
+cartão da direita mostra como o cliente vai ver o barbeiro:
 
 ![Cadastro de barbeiro](docs/imagens/cadastro-de-barbeiro.jpg)
 
 **Agenda do dia** — uma coluna por barbeiro, com o almoço e a ocupação no cabeçalho. Passando o
-mouse num espaço vazio aparece o horário (aqui, 09:30 no Beto), e o calendário da lateral mostra
+mouse num espaço vazio aparece o horário (aqui, 10:30 no Beto), e o calendário da lateral mostra
 o quanto cada dia do mês está cheio:
 
 ![Agenda do dia](docs/imagens/agenda-do-dia.jpg)
