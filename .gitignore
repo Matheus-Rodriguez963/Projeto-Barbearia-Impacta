@@ -23,3 +23,6 @@ docs/exemplo/
 # sistema
 .DS_Store
 *.log
+
+# rascunhos visuais do brainstorming
+.superpowers/
