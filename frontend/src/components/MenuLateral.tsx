@@ -7,8 +7,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useAparencia } from "@/components/AparenciaContexto";
+import { sairDoSistema } from "@/components/BotaoSair";
 import { useUsuario } from "@/components/UsuarioContexto";
-import { enderecoDaLogo, sair } from "@/lib/api";
+import { enderecoDaLogo } from "@/lib/api";
 import { MENUS } from "@/lib/tipos";
 
 export default function MenuLateral() {
@@ -83,13 +84,7 @@ export default function MenuLateral() {
         </Link>
         <button
           type="button"
-          onClick={async () => {
-            try {
-              await sair();
-            } finally {
-              window.location.replace("/login");
-            }
-          }}
+          onClick={sairDoSistema}
           className="cursor-pointer text-left font-rotulo text-[10px] tracking-[0.2em] text-latao uppercase hover:text-creme"
         >
           Sair

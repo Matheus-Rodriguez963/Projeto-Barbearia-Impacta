@@ -322,3 +322,12 @@ export function primeiroCaminho(usuario: UsuarioLogado): string | null {
   const item = MENUS.find((m) => usuario.menus.includes(m.menu));
   return item ? item.caminho : null;
 }
+
+/** Uma recepcionista, como a tela de Acessos lista. */
+export interface Recepcionista {
+  id: number;
+  login: string;
+  menus: Menu[];
+  ativo: boolean;
+  criado_em: string;
+}

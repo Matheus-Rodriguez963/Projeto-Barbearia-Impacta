@@ -5,17 +5,18 @@
 import Botao from "@/components/Botao";
 import { sair } from "@/lib/api";
 
-export default function BotaoSair({ className = "" }: { className?: string }) {
-  async function aoClicar() {
-    try {
-      await sair();
-    } finally {
-      window.location.replace("/login");
-    }
+/** Encerra a sessão e leva pra tela de login (o menu lateral usa a mesma). */
+export async function sairDoSistema() {
+  try {
+    await sair();
+  } finally {
+    window.location.replace("/login");
   }
+}
 
+export default function BotaoSair({ className = "" }: { className?: string }) {
   return (
-    <Botao onClick={aoClicar} className={className}>
+    <Botao onClick={sairDoSistema} className={className}>
       Sair
     </Botao>
   );

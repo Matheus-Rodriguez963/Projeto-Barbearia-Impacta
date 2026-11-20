@@ -19,6 +19,8 @@ import type {
   ListaDeClientes,
   ListaDeHistorico,
   ListaDeServicos,
+  Menu,
+  Recepcionista,
   ResumoDoMes,
   Servico,
   Situacao,
@@ -305,4 +307,33 @@ export function sair() {
 /** Quem está logado agora; dá 401 (ErroDaApi) se não tem sessão válida. */
 export function pegarEu() {
   return requisitar<UsuarioLogado>("/api/eu");
+}
+
+/** Troca a senha de quem está logado; a atual errada volta como 422 no campo senha_atual. */
+export function trocarMinhaSenha(senhaAtual: string, senhaNova: string) {
+  return requisitar<void>("/api/eu/senha", {
+    method: "PUT",
+    body: JSON.stringify({ senha_atual: senhaAtual, senha_nova: senhaNova }),
+  });
+}
+
+// ---------------------------------------------------------------- acessos (só o admin)
+
+export function listarRecepcionistas() {
+  return requisitar<Recepcionista[]>("/api/usuarios");
+}
+
+export function criarRecepcionista(dados: { login: string; senha: string; menus: Menu[] }) {
+  return requisitar<Recepcionista>("/api/usuarios", { method: "POST", body: JSON.stringify(dados) });
+}
+
+export function atualizarRecepcionista(id: number, dados: { menus?: Menu[]; ativo?: boolean }) {
+  return requisitar<Recepcionista>(`/api/usuarios/${id}`, { method: "PUT", body: JSON.stringify(dados) });
+}
+
+export function trocarSenhaDaRecepcionista(id: number, senhaNova: string) {
+  return requisitar<void>(`/api/usuarios/${id}/senha`, {
+    method: "PUT",
+    body: JSON.stringify({ senha_nova: senhaNova }),
+  });
 }
