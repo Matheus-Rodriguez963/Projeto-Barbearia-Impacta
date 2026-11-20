@@ -5,11 +5,12 @@ from typing import Literal
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.acesso import exigir_menu
 from app.core.database import pegar_sessao
 from app.crud import historico as crud
 from app.schemas.historico import HistoricoLista, ResumoDoMes
 
-roteador = APIRouter(prefix="/api/historico", tags=["Histórico"])
+roteador = APIRouter(prefix="/api/historico", tags=["Histórico"], dependencies=[Depends(exigir_menu("historico"))])
 
 
 @roteador.get("", response_model=HistoricoLista, summary="Os atendimentos de um mês")

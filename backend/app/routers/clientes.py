@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.acesso import exigir_menu, usuario_logado
 from app.core.database import pegar_sessao
 from app.core.erros import RegistroEmUso
 from app.crud import agendamento as crud_agendamento
@@ -10,7 +11,7 @@ from app.crud import cliente as crud
 from app.models.cliente import Cliente
 from app.schemas.cliente import ClienteAtualizar, ClienteCriar, ClienteLista, ClienteResposta
 
-roteador = APIRouter(prefix="/api/clientes", tags=["Clientes"])
+roteador = APIRouter(prefix="/api/clientes", tags=["Clientes"], dependencies=[Depends(usuario_logado)])
 
 
 def _pegar_cliente_ou_404(cliente_id: int, sessao: Session) -> Cliente:
@@ -26,6 +27,7 @@ def _pegar_cliente_ou_404(cliente_id: int, sessao: Session) -> Cliente:
     response_model=ClienteResposta,
     status_code=status.HTTP_201_CREATED,
     summary="Cadastrar um cliente novo",
+    dependencies=[Depends(exigir_menu("clientes"))],
 )
 def cadastrar(dados: ClienteCriar, sessao: Session = Depends(pegar_sessao)):
     # se o telefone/CPF/e-mail repetir, o crud levanta RegistroDuplicado
@@ -58,13 +60,13 @@ def detalhar(cliente_id: int, sessao: Session = Depends(pegar_sessao)):
     return _pegar_cliente_ou_404(cliente_id, sessao)
 
 
-@roteador.put("/{cliente_id}", response_model=ClienteResposta, summary="Editar a ficha do cliente")
+@roteador.put("/{cliente_id}", response_model=ClienteResposta, summary="Editar a ficha do cliente", dependencies=[Depends(exigir_menu("clientes"))])
 def editar(cliente_id: int, dados: ClienteAtualizar, sessao: Session = Depends(pegar_sessao)):
     cliente = _pegar_cliente_ou_404(cliente_id, sessao)
     return crud.atualizar(sessao, cliente, dados)
 
 
-@roteador.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir o cadastro")
+@roteador.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir o cadastro", dependencies=[Depends(exigir_menu("clientes"))])
 def excluir(cliente_id: int, sessao: Session = Depends(pegar_sessao)):
     cliente = _pegar_cliente_ou_404(cliente_id, sessao)
     # etapa 3: cliente com horário marcado (ou já atendido) não some, senão a agenda fica órfã

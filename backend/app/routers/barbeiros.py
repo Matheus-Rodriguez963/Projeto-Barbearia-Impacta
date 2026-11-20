@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.core.acesso import exigir_menu, usuario_logado
 from app.core.database import pegar_sessao
 from app.core.erros import RegistroEmUso
 from app.crud import agendamento as crud_agendamento
@@ -10,7 +11,7 @@ from app.crud import barbeiro as crud
 from app.models.barbeiro import Barbeiro
 from app.schemas.barbeiro import BarbeiroAtualizar, BarbeiroCriar, BarbeiroLista, BarbeiroResposta
 
-roteador = APIRouter(prefix="/api/barbeiros", tags=["Barbeiros"])
+roteador = APIRouter(prefix="/api/barbeiros", tags=["Barbeiros"], dependencies=[Depends(usuario_logado)])
 
 # o front já reduz a foto pra 480x480 antes de mandar (fica uns 60 KB),
 # então 2 MB é folga de sobra e barra alguém mandando a foto crua da câmera
@@ -30,6 +31,7 @@ def _pegar_barbeiro_ou_404(barbeiro_id: int, sessao: Session) -> Barbeiro:
     response_model=BarbeiroResposta,
     status_code=status.HTTP_201_CREATED,
     summary="Cadastrar um barbeiro novo",
+    dependencies=[Depends(exigir_menu("barbeiros"))],
 )
 def cadastrar(dados: BarbeiroCriar, sessao: Session = Depends(pegar_sessao)):
     return crud.criar(sessao, dados)
@@ -52,13 +54,13 @@ def detalhar(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
     return _pegar_barbeiro_ou_404(barbeiro_id, sessao)
 
 
-@roteador.put("/{barbeiro_id}", response_model=BarbeiroResposta, summary="Editar a ficha do barbeiro")
+@roteador.put("/{barbeiro_id}", response_model=BarbeiroResposta, summary="Editar a ficha do barbeiro", dependencies=[Depends(exigir_menu("barbeiros"))])
 def editar(barbeiro_id: int, dados: BarbeiroAtualizar, sessao: Session = Depends(pegar_sessao)):
     barbeiro = _pegar_barbeiro_ou_404(barbeiro_id, sessao)
     return crud.atualizar(sessao, barbeiro, dados)
 
 
-@roteador.put("/{barbeiro_id}/foto", response_model=BarbeiroResposta, summary="Enviar ou trocar a foto de perfil")
+@roteador.put("/{barbeiro_id}/foto", response_model=BarbeiroResposta, summary="Enviar ou trocar a foto de perfil", dependencies=[Depends(exigir_menu("barbeiros"))])
 async def enviar_foto(barbeiro_id: int, foto: UploadFile = File(...), sessao: Session = Depends(pegar_sessao)):
     barbeiro = _pegar_barbeiro_ou_404(barbeiro_id, sessao)
 
@@ -94,13 +96,13 @@ def ver_foto(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
     )
 
 
-@roteador.delete("/{barbeiro_id}/foto", response_model=BarbeiroResposta, summary="Tirar a foto de perfil")
+@roteador.delete("/{barbeiro_id}/foto", response_model=BarbeiroResposta, summary="Tirar a foto de perfil", dependencies=[Depends(exigir_menu("barbeiros"))])
 def remover_foto(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
     barbeiro = _pegar_barbeiro_ou_404(barbeiro_id, sessao)
     return crud.trocar_foto(sessao, barbeiro, None)
 
 
-@roteador.delete("/{barbeiro_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir o cadastro")
+@roteador.delete("/{barbeiro_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir o cadastro", dependencies=[Depends(exigir_menu("barbeiros"))])
 def excluir(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
     barbeiro = _pegar_barbeiro_ou_404(barbeiro_id, sessao)
     # etapa 3: é o que a chave "disponível para agendamento" já previa — quem tem

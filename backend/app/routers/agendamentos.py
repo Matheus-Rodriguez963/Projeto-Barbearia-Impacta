@@ -9,6 +9,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.acesso import exigir_menu
 from app.core.database import pegar_sessao
 from app.crud import agendamento as crud
 from app.crud import barbeiro as crud_barbeiro
@@ -22,7 +23,7 @@ from app.schemas.agendamento import (
     MudarSituacao,
 )
 
-roteador = APIRouter(prefix="/api/agendamentos", tags=["Agendamentos"])
+roteador = APIRouter(prefix="/api/agendamentos", tags=["Agendamentos"], dependencies=[Depends(exigir_menu("agenda"))])
 
 
 def _pegar_agendamento_ou_404(agendamento_id: int, sessao: Session) -> Agendamento:

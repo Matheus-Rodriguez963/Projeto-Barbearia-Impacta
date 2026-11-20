@@ -4,10 +4,10 @@
 class RegistroDuplicado(Exception):
     """Já existe um cadastro com esse telefone / CPF / e-mail na mesma tabela."""
 
-    def __init__(self, campo: str, valor: str, dono: str):
+    def __init__(self, campo: str, valor: str, dono: str, mensagem: str | None = None):
         self.campo = campo
         self.valor = valor
-        super().__init__(f"Já existe um {dono} cadastrado com esse {campo}.")
+        super().__init__(mensagem or f"Já existe um {dono} cadastrado com esse {campo}.")
 
 
 class RegistroEmUso(Exception):

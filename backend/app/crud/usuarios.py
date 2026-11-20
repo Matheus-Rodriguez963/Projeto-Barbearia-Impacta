@@ -8,6 +8,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core import senha as cofre
+from app.core.erros import RegistroDuplicado
+from app.core.acesso import MENUS
 from app.models.usuario import Sessao, Usuario
 
 DURACAO_DA_SESSAO = timedelta(hours=12)
@@ -97,3 +99,46 @@ def trocar_senha(sessao: Session, usuario: Usuario, senha_nova: str) -> None:
     usuario.senha_hash = cofre.gerar_hash(senha_nova)
     usuario.senha_padrao = False
     sessao.commit()
+
+
+def listar_recepcionistas(sessao: Session) -> list[Usuario]:
+    return list(sessao.scalars(select(Usuario).where(Usuario.tipo == "recepcionista").order_by(Usuario.login)))
+
+
+def pegar_recepcionista(sessao: Session, usuario_id: int) -> Usuario | None:
+    """Só devolve recepcionista: o admin nunca é mexido por aqui (assim ele não se tranca pra fora)."""
+    usuario = sessao.get(Usuario, usuario_id)
+    return usuario if usuario is not None and usuario.tipo == "recepcionista" else None
+
+
+def criar_recepcionista(sessao: Session, login: str, senha: str, menus: list[str]) -> Usuario:
+    if sessao.scalar(select(Usuario.id).where(Usuario.login == login)) is not None:
+        raise RegistroDuplicado("login", login, "usuário", "Já existe um usuário com esse login.")
+    usuario = Usuario(
+        login=login,
+        senha_hash=cofre.gerar_hash(senha),
+        tipo="recepcionista",
+        menus=[menu for menu in MENUS if menu in menus],  # sem repetição e na ordem do sistema
+        ativo=True,
+        senha_padrao=False,
+    )
+    sessao.add(usuario)
+    sessao.commit()
+    return usuario
+
+
+def atualizar_recepcionista(sessao: Session, usuario: Usuario, menus: list[str] | None, ativo: bool | None) -> Usuario:
+    if menus is not None:
+        usuario.menus = [menu for menu in MENUS if menu in menus]
+    if ativo is not None:
+        usuario.ativo = ativo
+    sessao.commit()
+    if ativo is False:  # bloqueada: derruba quem já estava logada
+        fechar_sessoes_do_usuario(sessao, usuario.id)
+    return usuario
+
+
+def redefinir_senha(sessao: Session, usuario: Usuario, senha_nova: str) -> None:
+    """O admin define uma senha nova pra recepcionista; as sessões dela caem."""
+    trocar_senha(sessao, usuario, senha_nova)
+    fechar_sessoes_do_usuario(sessao, usuario.id)

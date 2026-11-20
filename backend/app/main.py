@@ -16,7 +16,7 @@ from app.core.database import Base, SessaoLocal, acrescentar_colunas_novas, engi
 from app.core.erros import RegistroDuplicado, RegistroEmUso, RegraDaAgenda
 from app.crud import usuarios as crud_usuarios
 from app.models import Agendamento, Aparencia, Barbeiro, Cliente, Servico, Sessao, Usuario  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
-from app.routers import acesso, agendamentos, aparencia, barbeiros, clientes, historico, servicos
+from app.routers import acesso, agendamentos, aparencia, barbeiros, clientes, historico, servicos, usuarios
 
 
 @asynccontextmanager
@@ -103,6 +103,7 @@ async def tratar_validacao(request: Request, erro: RequestValidationError):
 
 
 app.include_router(acesso.roteador)
+app.include_router(usuarios.roteador)
 app.include_router(clientes.roteador)
 app.include_router(barbeiros.roteador)
 app.include_router(servicos.roteador)

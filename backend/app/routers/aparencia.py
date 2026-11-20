@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.core.acesso import exigir_menu
 from app.core.database import pegar_sessao
 from app.crud import aparencia as crud
 from app.routers.barbeiros import TAMANHO_MAXIMO_DA_FOTO, TIPOS_DE_FOTO  # a logo segue a mesma regra da foto
@@ -16,12 +17,12 @@ def ver(sessao: Session = Depends(pegar_sessao)):
     return crud.pegar(sessao)
 
 
-@roteador.put("", response_model=AparenciaResposta, summary="Mudar o nome ou o tema")
+@roteador.put("", response_model=AparenciaResposta, summary="Mudar o nome ou o tema", dependencies=[Depends(exigir_menu("aparencia"))])
 def editar(dados: AparenciaAtualizar, sessao: Session = Depends(pegar_sessao)):
     return crud.atualizar(sessao, dados)
 
 
-@roteador.put("/logo", response_model=AparenciaResposta, summary="Enviar ou trocar a logo")
+@roteador.put("/logo", response_model=AparenciaResposta, summary="Enviar ou trocar a logo", dependencies=[Depends(exigir_menu("aparencia"))])
 async def enviar_logo(logo: UploadFile = File(...), sessao: Session = Depends(pegar_sessao)):
     if logo.content_type not in TIPOS_DE_FOTO:
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="A logo precisa ser JPG, PNG ou WEBP.")
@@ -56,6 +57,6 @@ def ver_logo(sessao: Session = Depends(pegar_sessao)):
     )
 
 
-@roteador.delete("/logo", response_model=AparenciaResposta, summary="Tirar a logo")
+@roteador.delete("/logo", response_model=AparenciaResposta, summary="Tirar a logo", dependencies=[Depends(exigir_menu("aparencia"))])
 def remover_logo(sessao: Session = Depends(pegar_sessao)):
     return crud.trocar_logo(sessao, None)

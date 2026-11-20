@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.acesso import exigir_menu, usuario_logado
 from app.core.database import pegar_sessao
 from app.core.erros import RegistroEmUso
 from app.crud import agendamento as crud_agendamento
@@ -10,7 +11,7 @@ from app.crud import servico as crud
 from app.models.servico import Servico
 from app.schemas.servico import ServicoAtualizar, ServicoCriar, ServicoLista, ServicoResposta
 
-roteador = APIRouter(prefix="/api/servicos", tags=["Serviços"])
+roteador = APIRouter(prefix="/api/servicos", tags=["Serviços"], dependencies=[Depends(usuario_logado)])
 
 
 def _pegar_servico_ou_404(servico_id: int, sessao: Session) -> Servico:
@@ -20,7 +21,7 @@ def _pegar_servico_ou_404(servico_id: int, sessao: Session) -> Servico:
     return servico
 
 
-@roteador.post("", response_model=ServicoResposta, status_code=status.HTTP_201_CREATED, summary="Cadastrar um serviço")
+@roteador.post("", response_model=ServicoResposta, status_code=status.HTTP_201_CREATED, summary="Cadastrar um serviço", dependencies=[Depends(exigir_menu("servicos"))])
 def cadastrar(dados: ServicoCriar, sessao: Session = Depends(pegar_sessao)):
     return crud.criar(sessao, dados)
 
@@ -42,13 +43,13 @@ def detalhar(servico_id: int, sessao: Session = Depends(pegar_sessao)):
     return _pegar_servico_ou_404(servico_id, sessao)
 
 
-@roteador.put("/{servico_id}", response_model=ServicoResposta, summary="Editar um serviço")
+@roteador.put("/{servico_id}", response_model=ServicoResposta, summary="Editar um serviço", dependencies=[Depends(exigir_menu("servicos"))])
 def editar(servico_id: int, dados: ServicoAtualizar, sessao: Session = Depends(pegar_sessao)):
     servico = _pegar_servico_ou_404(servico_id, sessao)
     return crud.atualizar(sessao, servico, dados)
 
 
-@roteador.delete("/{servico_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir um serviço")
+@roteador.delete("/{servico_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir um serviço", dependencies=[Depends(exigir_menu("servicos"))])
 def excluir(servico_id: int, sessao: Session = Depends(pegar_sessao)):
     servico = _pegar_servico_ou_404(servico_id, sessao)
     # serviço que já foi marcado alguma vez fica no histórico; a saída é desligar
