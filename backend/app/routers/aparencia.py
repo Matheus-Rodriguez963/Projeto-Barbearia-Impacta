@@ -47,11 +47,12 @@ def ver_logo(sessao: Session = Depends(pegar_sessao)):
     if aparencia.logo is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="A barbearia ainda não tem logo.")
 
-    # o endereço muda (?v=) quando a logo muda, então o navegador pode guardar por bastante tempo
+    # o endereço muda (?v=) quando a logo muda, então o navegador pode guardar por bastante tempo.
+    # O nosniff faz o navegador acreditar no tipo que mandamos, sem "adivinhar" pelo conteúdo.
     return Response(
         content=aparencia.logo,
         media_type=aparencia.logo_tipo,
-        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        headers={"Cache-Control": "public, max-age=31536000, immutable", "X-Content-Type-Options": "nosniff"},
     )
 
 

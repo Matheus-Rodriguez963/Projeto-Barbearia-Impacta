@@ -2,6 +2,11 @@
 
 import base64
 
+from sqlalchemy import func, select
+
+from app.crud import aparencia as crud
+from app.models.aparencia import Aparencia
+
 # um PNG de 1x1 pixel, o menor que ainda é uma imagem válida
 PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAfbLI3wAAAABJRU5ErkJggg=="
@@ -14,6 +19,13 @@ def test_padrao_na_primeira_leitura(cliente_api):
     assert r.json() | {"atualizado_em": None} == {
         "linha_de_cima": "Barbearia", "nome": "Dom Alfredo", "tema": "classico",
         "logo_url": None, "atualizado_em": None}
+
+
+def test_pegar_cria_a_linha_uma_vez_so(sessao):
+    primeira = crud.pegar(sessao)
+    segunda = crud.pegar(sessao)
+    assert primeira.id == segunda.id == crud.ID_UNICO
+    assert sessao.scalar(select(func.count()).select_from(Aparencia)) == 1
 
 
 def test_edita_so_o_que_foi_enviado(cliente_api):
@@ -47,6 +59,7 @@ def test_envia_ve_e_tira_a_logo(cliente_api):
     assert r.status_code == 200 and r.json()["logo_url"].startswith("/api/aparencia/logo?v=")
     img = cliente_api.get("/api/aparencia/logo")
     assert img.status_code == 200 and img.headers["content-type"] == "image/png" and img.content == PNG
+    assert img.headers["x-content-type-options"] == "nosniff"
     assert cliente_api.delete("/api/aparencia/logo").json()["logo_url"] is None
     assert cliente_api.get("/api/aparencia/logo").status_code == 404
 

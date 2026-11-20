@@ -3,6 +3,7 @@
 
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { cache } from "react";
 
 import { ProvedorDeAparencia } from "@/components/AparenciaContexto";
 import MenuLateral from "@/components/MenuLateral";
@@ -21,7 +22,9 @@ const karla = localFont({ src: "./fontes/karla.woff2", weight: "200 800", variab
 
 // Lê a aparência salva direto da API, no servidor, pra o tema já vir certo no primeiro
 // desenho (sem piscar). Se a API não responder logo, o site abre no Clássico mesmo.
-async function lerAparencia(): Promise<Aparencia> {
+// O cache() faz o generateMetadata e o layout usarem a mesma leitura: o Next não junta
+// sozinho dois fetch iguais quando eles têm signal.
+const lerAparencia = cache(async (): Promise<Aparencia> => {
   try {
     const resposta = await fetch(`${URL_DA_API}/api/aparencia`, {
       cache: "no-store",
@@ -32,7 +35,7 @@ async function lerAparencia(): Promise<Aparencia> {
   } catch {
     return APARENCIA_PADRAO;
   }
-}
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const marca = marcaDaAparencia(await lerAparencia());

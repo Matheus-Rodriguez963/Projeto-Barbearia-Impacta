@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.crud.comum import salvar
@@ -14,9 +15,15 @@ ID_UNICO = 1
 def pegar(sessao: Session) -> Aparencia:
     """A aparência da casa. Na primeira vez cria a linha com os padrões."""
     aparencia = sessao.get(Aparencia, ID_UNICO)
-    if aparencia is None:
-        aparencia = salvar(sessao, Aparencia(id=ID_UNICO))
-    return aparencia
+    if aparencia is not None:
+        return aparencia
+    try:
+        return salvar(sessao, Aparencia(id=ID_UNICO))
+    except IntegrityError:
+        # duas primeiras leituras ao mesmo tempo: a outra criou a linha antes. Desfaço a
+        # minha tentativa e leio a dela.
+        sessao.rollback()
+        return sessao.get(Aparencia, ID_UNICO)
 
 
 def atualizar(sessao: Session, dados: AparenciaAtualizar) -> Aparencia:

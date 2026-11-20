@@ -48,11 +48,17 @@ As variações (`mogno-escuro`, `mogno-claro`, `terracota-claro`, `latao-claro`,
 `tinta-media`, `tinta-fraca`, `creme`, `fundo`) ficam a cargo de quem implementa, derivadas de
 cada tema no mesmo sentido do Clássico (mais escuro/mais claro). `erro` não muda entre temas.
 Quem implementa confere o contraste do texto sobre o fundo em cada tema (mínimo 4,5:1 pro
-texto normal).
+texto normal). Exceção conhecida: alguns tons de texto que o Clássico já tinha antes desta
+etapa ficam abaixo de 4,5:1 (por exemplo a `tinta-apagada` das dicas como "(opcional)" e os
+números das etapas em `latao`, que são decorativos). Eles ficaram como estavam pra não mudar
+a cara do Clássico; os outros temas seguem os mesmos tons relativos.
 
-Os temas ficam como blocos `html[data-tema="preto"] { --color-mogno: …; }` num arquivo
-`frontend/src/app/temas.css` importado pelo `globals.css`. O Clássico é o padrão (`:root`),
-então sem `data-tema` o sistema fica exatamente como hoje.
+Os temas ficam como blocos `[data-tema="preto"] { --color-mogno: …; }` num arquivo
+`frontend/src/app/temas.css` importado pelo `globals.css`. O seletor vale em qualquer
+elemento, não só no `<html>`: cada bloco define a lista inteira de variáveis, então um
+elemento com `data-tema` aplica o tema só dentro dele (é assim que as miniaturas dos cartões
+de tema pintam cada uma com as próprias cores). O Clássico é o padrão (`:root`), então sem
+`data-tema` o sistema fica exatamente como hoje.
 
 **Contraste manda na tabela** (decisão de quem escreveu, depois da revisão): se uma cor da
 tabela for usada como texto e não passar de 4,5:1 sobre o fundo onde aparece, o valor é
