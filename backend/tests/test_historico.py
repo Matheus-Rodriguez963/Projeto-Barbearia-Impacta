@@ -190,7 +190,8 @@ def test_ranking_ordena_por_quantidade(cliente_api, relogio, casa):
 
 def test_ranking_usa_preco_combinado(cliente_api, relogio, casa):
     _atendido(cliente_api, relogio, casa, "2030-01-01", "09:00", [casa["corte"]])
-    cliente_api.put(f"/api/servicos/{casa['corte']}", json={"preco": 70})
+    resposta = cliente_api.put(f"/api/servicos/{casa['corte']}", json={"preco": 70})
+    assert resposta.status_code == 200
 
     corte = _resumo(cliente_api)["servicos"][0]
     assert corte["faturamento"] == 55.0

@@ -126,6 +126,7 @@ def _atendimentos_de_exemplo(sessao):
         return
 
     ocupados = {}  # (barbeiro, dia) -> [(inicio, fim)] em minutos, pra ninguém atender dois ao mesmo tempo
+    gravados = {"concluido": 0, "faltou": 0}
     total = QUANTOS_CONCLUIDOS + QUANTAS_FALTAS
     for i in range(total):
         # as faltas ficam no meio da lista, misturadas com os concluídos
@@ -172,6 +173,7 @@ def _atendimentos_de_exemplo(sessao):
                     ],
                 )
                 sessao.add(agendamento)
+                gravados[situacao] += 1
                 marcado = True
                 break
             if marcado:
@@ -180,7 +182,7 @@ def _atendimentos_de_exemplo(sessao):
             print(f"- Não achei horário pro atendimento {i + 1}, pulei.")
 
     sessao.commit()
-    print(f"+ Atendimentos de exemplo gravados ({QUANTOS_CONCLUIDOS} concluídos e {QUANTAS_FALTAS} faltas).")
+    print(f"+ Atendimentos de exemplo gravados ({gravados['concluido']} concluídos e {gravados['faltou']} faltas).")
 
 
 def main():

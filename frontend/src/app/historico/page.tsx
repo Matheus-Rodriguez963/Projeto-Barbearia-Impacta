@@ -52,11 +52,9 @@ const classeSeta =
   "transition-colors hover:border-terracota hover:bg-terracota/5 active:scale-95";
 
 export default function PaginaHistorico() {
-  // começa no mês de hoje; guardo ano e mês juntos pra virar o ano sem confusão
-  const [mes, setMes] = useState(() => {
-    const [ano, numero] = hoje().split("-").map(Number);
-    return { ano, numero };
-  });
+  // começa no mês de hoje, mas só no navegador (no servidor o "hoje" seria o do build);
+  // guardo ano e mês juntos pra virar o ano sem confusão
+  const [mes, setMes] = useState<{ ano: number; numero: number } | null>(null);
   const [barbeiroId, setBarbeiroId] = useState("");
   const [cliente, setCliente] = useState<ClienteEscolhido | null>(null);
   const [situacao, setSituacao] = useState<FiltroDeSituacao>("concluido");
@@ -69,12 +67,20 @@ export default function PaginaHistorico() {
   const [erro, setErro] = useState("");
 
   useEffect(() => {
+    Promise.resolve().then(() => {
+      const [ano, numero] = hoje().split("-").map(Number);
+      setMes((atual) => atual ?? { ano, numero });
+    });
+  }, []);
+
+  useEffect(() => {
     listarBarbeiros("", 1, 100)
       .then((resposta) => setBarbeiros(resposta.itens))
       .catch(() => setBarbeiros([]));
   }, []);
 
   useEffect(() => {
+    if (!mes) return; // ainda não sei qual é o mês de hoje
     let valendo = true;
     const idDoBarbeiro = barbeiroId ? Number(barbeiroId) : undefined;
 
@@ -115,6 +121,7 @@ export default function PaginaHistorico() {
   }, [mes, barbeiroId, cliente, situacao, pagina]);
 
   function folhear(quantos: number) {
+    if (!mes) return;
     const total = mes.ano * 12 + (mes.numero - 1) + quantos;
     setMes({ ano: Math.floor(total / 12), numero: (total % 12) + 1 });
     setPagina(1);
@@ -138,10 +145,10 @@ export default function PaginaHistorico() {
               ‹
             </button>
             <span
-              key={`${mes.ano}-${mes.numero}`}
+              key={mes ? `${mes.ano}-${mes.numero}` : "carregando"}
               className="min-w-40 animate-surgir text-center font-titulo text-[20px] text-tinta capitalize"
             >
-              {MESES[mes.numero - 1]} {mes.ano}
+              {mes ? `${MESES[mes.numero - 1]} ${mes.ano}` : "—"}
             </span>
             <button type="button" aria-label="Próximo mês" onClick={() => folhear(1)} className={classeSeta}>
               ›
@@ -269,7 +276,9 @@ export default function PaginaHistorico() {
                   {!carregando && lista.itens.length === 0 && !erro && (
                     <tr>
                       <td colSpan={6} className="px-4 py-12 text-center text-[15px] text-tinta-media">
-                        Nenhum atendimento nesse mês.
+                        {cliente || situacao !== "concluido"
+                          ? "Nenhum atendimento com esses filtros nesse mês."
+                          : "Nenhum atendimento nesse mês."}
                       </td>
                     </tr>
                   )}
@@ -282,10 +291,16 @@ export default function PaginaHistorico() {
 
           <aside className="min-w-0">
             <Secao titulo="Mais pedidos" />
-            <RankingDeServicos servicos={resumo?.servicos ?? []} />
+            {erro ? (
+              <p className="m-0 text-[14px] text-tinta-fraca">—</p>
+            ) : (
+              <RankingDeServicos servicos={resumo?.servicos ?? []} />
+            )}
 
             <Secao titulo="Cliente e barbeiro" />
-            {resumo && resumo.pares.length > 0 ? (
+            {erro ? (
+              <p className="m-0 text-[14px] text-tinta-fraca">—</p>
+            ) : resumo && resumo.pares.length > 0 ? (
               <ul className="m-0 flex list-none flex-col p-0">
                 {resumo.pares.map((par) => (
                   <li
