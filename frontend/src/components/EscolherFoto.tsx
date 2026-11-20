@@ -3,6 +3,7 @@
 // A foto de perfil do barbeiro: a moldura onde se clica pra escolher e o estado da foto.
 // A foto escolhida fica só no navegador até a ficha ser salva; aí o formulário chama
 // o sincronizar(), que manda (ou tira) a foto na API.
+// A tela de Aparência usa o mesmo hook pra logo, só trocando o jeito de preparar a imagem.
 
 import { useEffect, useState } from "react";
 
@@ -10,7 +11,7 @@ import { enviarFotoBarbeiro, removerFotoBarbeiro } from "@/lib/api";
 import { prepararFoto } from "@/lib/foto";
 import type { Barbeiro } from "@/lib/tipos";
 
-export function useFotoDePerfil(fotoSalva: string | null) {
+export function useFotoDePerfil(fotoSalva: string | null, preparar: (arquivo: File) => Promise<Blob> = prepararFoto) {
   const [nova, setNova] = useState<Blob | null>(null);
   const [previa, setPrevia] = useState<string | null>(null);
   const [tirar, setTirar] = useState(false);
@@ -28,7 +29,7 @@ export function useFotoDePerfil(fotoSalva: string | null) {
     setPreparando(true);
     setErro("");
     try {
-      const pronta = await prepararFoto(arquivo);
+      const pronta = await preparar(arquivo);
       setNova(pronta);
       setPrevia(URL.createObjectURL(pronta));
       setTirar(false);
@@ -65,6 +66,7 @@ export function useFotoDePerfil(fotoSalva: string | null) {
   return {
     naTela: tirar ? null : (previa ?? fotoSalva),
     trocada: Boolean(previa),
+    nova, // a imagem já preparada, pra quem não é barbeiro mandar pela própria rota
     preparando,
     erro,
     escolher,

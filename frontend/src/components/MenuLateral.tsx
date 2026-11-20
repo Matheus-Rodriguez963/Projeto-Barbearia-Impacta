@@ -29,13 +29,19 @@ export default function MenuLateral() {
   return (
     // some no celular, que é o que o CSS original fazia
     <aside className="madeira hidden w-56 shrink-0 flex-col bg-mogno md:flex">
-      <div className="flex items-center gap-3 border-b border-latao/20 px-6 pt-7 pb-6">
+      {/* logo larga não cabe do lado do nome: aí o nome desce pra linha de baixo (flex-wrap) */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-latao/20 px-6 pt-7 pb-6">
         {aparencia.logo_url && (
+          // na prévia da tela de Aparência a logo nova ainda é um "blob:" do navegador, que já vem pronto
           // eslint-disable-next-line @next/next/no-img-element -- a logo vem da API, com tamanho que não conheço
-          <img src={enderecoDaLogo(aparencia.logo_url)} alt="" className="max-h-10 w-auto shrink-0" />
+          <img
+            src={aparencia.logo_url.startsWith("blob:") ? aparencia.logo_url : enderecoDaLogo(aparencia.logo_url)}
+            alt=""
+            className="max-h-10 w-auto max-w-full shrink-0"
+          />
         )}
 
-        <div className="min-w-0">
+        <div className="min-w-28 flex-1">
           {aparencia.linha_de_cima && (
             <div className="mb-1.5 font-rotulo text-[9px] tracking-[0.4em] text-latao uppercase">
               {aparencia.linha_de_cima}
