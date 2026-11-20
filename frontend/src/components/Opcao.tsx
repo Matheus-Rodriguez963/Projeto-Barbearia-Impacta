@@ -16,7 +16,7 @@ export default function Opcao({ marcada, onClick, children }: PropsOpcao) {
       className={`cursor-pointer border px-4 py-2.25 font-rotulo text-[10px] tracking-[0.18em] uppercase ${
         marcada
           ? "border-terracota bg-terracota text-creme"
-          : "border-mogno/30 text-[#6b563f] hover:border-terracota hover:text-tinta"
+          : "border-mogno/30 text-tinta-amena hover:border-terracota hover:text-tinta"
       }`}
     >
       {children}

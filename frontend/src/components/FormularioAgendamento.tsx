@@ -251,7 +251,7 @@ export default function FormularioAgendamento({ agendamentoExistente, inicial = 
     { nome: "Tarde", horarios: gradeAtual?.horarios.filter((h) => emMinutos(h.hora) >= 12 * 60) ?? [] },
   ].filter((turno) => turno.horarios.length > 0);
 
-  const falta = (texto: string) => <dd className="m-0 text-right text-[#b49b80] italic">{texto}</dd>;
+  const falta = (texto: string) => <dd className="m-0 text-right text-tinta-apagada italic">{texto}</dd>;
   const linhas: [string, React.ReactNode][] = [
     ["Cliente", cliente ? <dd className="m-0 text-right">{cliente.nome}</dd> : falta("Escolha o cliente")],
     ["Serviço", escolhidos.length ? <dd className="m-0 text-right">{escolhidos.map((s) => s.nome).join(", ")}</dd> : falta("Escolha um serviço")],
@@ -352,7 +352,7 @@ export default function FormularioAgendamento({ agendamentoExistente, inicial = 
                       onClick={() => escolherBarbeiro(pessoa.id)}
                       className={`flex cursor-pointer flex-col items-center gap-2.5 border px-2.5 pt-4.5 pb-4 text-center ${
                         marcado
-                          ? "border-terracota bg-papel-claro shadow-[inset_0_0_0_1px_var(--color-terracota),0_0_0_3px_rgba(201,162,39,.3)]"
+                          ? "border-terracota bg-papel-claro shadow-[inset_0_0_0_1px_var(--color-terracota),0_0_0_3px_color-mix(in_srgb,var(--color-latao)_30%,transparent)]"
                           : "border-mogno/26 bg-papel-claro/55 hover:border-terracota"
                       }`}
                     >
@@ -405,14 +405,14 @@ export default function FormularioAgendamento({ agendamentoExistente, inicial = 
                     </span>
                     <span
                       className={`font-titulo text-[24px] leading-none ${
-                        marcado ? "" : trabalha ? "text-tinta" : "text-[#c4b39c]"
+                        marcado ? "" : trabalha ? "text-tinta" : "text-tinta-sumida"
                       }`}
                     >
                       {partes.dia}
                     </span>
                     <span
                       className={`font-rotulo text-[9px] tracking-[0.16em] uppercase ${
-                        marcado ? "" : trabalha ? "text-tinta-fraca" : "text-[#b49b80]"
+                        marcado ? "" : trabalha ? "text-tinta-fraca" : "text-tinta-apagada"
                       }`}
                     >
                       {!trabalha ? "Folga" : dia === primeiroDia ? "Hoje" : partes.mes}
@@ -452,10 +452,10 @@ export default function FormularioAgendamento({ agendamentoExistente, inicial = 
                           }}
                           className={`border px-1 py-2.75 text-[15px] ${
                             marcado
-                              ? "cursor-pointer border-oliva bg-oliva text-[#f4eedc]"
+                              ? "cursor-pointer border-sucesso bg-sucesso text-papel"
                               : h.livre
-                                ? "cursor-pointer border-mogno/26 bg-papel-claro/55 text-tinta hover:border-oliva"
-                                : "cursor-not-allowed border-transparent text-[#bba88f] line-through"
+                                ? "cursor-pointer border-mogno/26 bg-papel-claro/55 text-tinta hover:border-sucesso"
+                                : "cursor-not-allowed border-transparent text-tinta-riscada line-through"
                           }`}
                         >
                           {valor}
@@ -470,8 +470,8 @@ export default function FormularioAgendamento({ agendamentoExistente, inicial = 
         </div>
 
         {/* o resumo na moldura dourada, que fica parado enquanto a página rola */}
-        <aside className="moldura-latao sticky top-0 p-2 shadow-[0_24px_50px_rgba(58,20,9,.25)]">
-          <div className="border border-[rgba(60,32,6,.4)] bg-papel-claro px-6 pt-6.5 pb-6">
+        <aside className="moldura-latao sticky top-0 p-2 shadow-[0_24px_50px_color-mix(in_srgb,var(--color-tinta)_25%,transparent)]">
+          <div className="border border-tinta/40 bg-papel-claro px-6 pt-6.5 pb-6">
             <h3 className="m-0 mb-1 text-center font-titulo text-[24px] font-normal">
               {remarcando ? "Nova reserva" : "A reserva"}
             </h3>

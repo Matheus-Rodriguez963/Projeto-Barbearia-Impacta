@@ -96,7 +96,7 @@ export default function GavetaDeAgendamento({ lugar, data, ocupados, cardapio, o
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Marcar horário">
       <div
         onClick={() => fechar()}
-        className={`absolute inset-0 bg-[rgba(23,17,14,.45)] ${saindo ? "animate-fundo-saindo" : "animate-fundo"}`}
+        className={`absolute inset-0 bg-fundo/45 ${saindo ? "animate-fundo-saindo" : "animate-fundo"}`}
       />
 
       <div
@@ -106,7 +106,7 @@ export default function GavetaDeAgendamento({ lugar, data, ocupados, cardapio, o
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="font-rotulo text-[10px] tracking-[0.26em] text-[#9a5a2e] uppercase">Novo agendamento</span>
+            <span className="font-rotulo text-[10px] tracking-[0.26em] text-rotulo-secao uppercase">Novo agendamento</span>
             <h2 className="m-0 mt-1.5 mb-1 font-titulo text-[28px] leading-tight font-normal text-tinta">
               {hhmm(lugar.minuto)} com {lugar.barbeiroNome}
             </h2>
@@ -175,7 +175,7 @@ export default function GavetaDeAgendamento({ lugar, data, ocupados, cardapio, o
         </div>
 
         {duracao > 0 && (passaDaSaida || caiNoAlmoco || bate) ? (
-          <div className="animate-surgir border border-erro/35 bg-erro/6 px-3.5 py-3 text-[13px] leading-relaxed text-[#8a2b16]">
+          <div className="animate-surgir border border-erro/35 bg-erro/6 px-3.5 py-3 text-[13px] leading-relaxed text-erro-texto">
             {passaDaSaida
               ? `Não cabe: ${lugar.barbeiroNome} sai às ${hhmm(lugar.saida)}.`
               : caiNoAlmoco
@@ -186,14 +186,14 @@ export default function GavetaDeAgendamento({ lugar, data, ocupados, cardapio, o
           </div>
         ) : (
           duracao > 0 && (
-            <div className="animate-surgir border border-oliva/40 bg-oliva/8 px-3.5 py-3 text-[13px] text-[#4c5330]">
+            <div className="animate-surgir border border-sucesso/40 bg-sucesso/8 px-3.5 py-3 text-[13px] text-sucesso-texto">
               Cabe certinho na agenda de {lugar.barbeiroNome}.
             </div>
           )
         )}
 
         {aviso && (
-          <div className="animate-surgir border border-erro/35 bg-erro/6 px-3.5 py-3 text-[13px] text-[#8a2b16]">
+          <div className="animate-surgir border border-erro/35 bg-erro/6 px-3.5 py-3 text-[13px] text-erro-texto">
             {aviso}
           </div>
         )}

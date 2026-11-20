@@ -1,0 +1,120 @@
+/* Aparência: os outros três temas, além do Clássico.
+
+   O Clássico é o @theme do globals.css (o padrão, sem data-tema nenhum). Aqui cada tema
+   só troca o valor das mesmas variáveis, então nenhum componente muda de classe.
+
+   O seletor é [data-tema="..."] em qualquer elemento, não só no <html>: assim dá pra
+   mostrar um tema só dentro de uma caixinha de prévia. E ganha do @theme mesmo tendo a
+   mesma especificidade do :root, porque o Tailwind põe o @theme dentro de @layer theme
+   e este arquivo fica fora de camada (o que está fora de camada sempre vence).
+
+   O que NÃO está aqui de propósito: sucesso, erro, agora e as cores dos barbeiros.
+   Essas têm significado e ficam iguais em qualquer tema.
+
+   Contraste: todo texto fica com pelo menos 4,5:1 sobre o papel. Por isso alguns valores
+   saíram um pouco diferentes da tabela da prévia (anotado do lado). */
+
+/* Preto e ouro */
+[data-tema="preto"] {
+  --color-mogno-escuro: #0d0c0b;
+  --color-mogno: #161514;
+  --color-mogno-claro: #24221f;
+  --color-terracota: #1f1e1c;
+  --color-terracota-claro: #34322e;
+  --color-latao: #d4af37;
+  --color-latao-claro: #e6c96e;
+  --color-oliva: #b8962e; /* só nas barras do ranking, nunca como texto */
+  --color-papel: #f3f1ec;
+  --color-papel-claro: #fffefb;
+  --color-tinta: #1c1b19;
+  --color-tinta-forte: #121110;
+  --color-tinta-media: #67625a;
+  --color-tinta-fraca: #6f6a61;
+  --color-rotulo: #6e685b; /* a prévia tinha #7d7668, que dava 4,0:1 sobre o papel */
+  --color-creme: #f3eee2;
+  --color-fundo: #0e0d0c;
+
+  --color-tinta-amena: #57524a;
+  --color-tinta-apagada: #a9a397;
+  --color-tinta-sumida: #bdb8ad;
+  --color-tinta-riscada: #b3ada1;
+  --color-rotulo-secao: #86691c; /* o ouro escurecido pra dar leitura no papel */
+  --color-papel-leve: #faf9f5;
+  --color-papel-medio: #f6f4ef;
+  --color-papel-escuro: #e9e6de;
+  --color-papel-sombra: #dfdbd1;
+  --color-terracota-palido: #ebe8e2;
+  --color-moldura-brilho: #f4e2a6;
+  --color-moldura-luz: #e9cf80;
+  --color-moldura-meio: #ad8a2a;
+  --color-moldura-sombra: #8f6f1c;
+}
+
+/* Marinho */
+[data-tema="marinho"] {
+  --color-mogno-escuro: #0c1529;
+  --color-mogno: #14213d;
+  --color-mogno-claro: #1d2e52;
+  --color-terracota: #b3122b;
+  --color-terracota-claro: #c41e37;
+  --color-latao: #f35d6b; /* a prévia tinha #d6283a, que dava 3,2:1 sobre o menu */
+  --color-latao-claro: #f58e98;
+  --color-oliva: #14213d;
+  --color-papel: #eef1f5;
+  --color-papel-claro: #ffffff;
+  --color-tinta: #14213d;
+  --color-tinta-forte: #0b1428;
+  --color-tinta-media: #4f5d77;
+  --color-tinta-fraca: #56647d;
+  --color-rotulo: #5f6d86;
+  --color-creme: #f1f4f9;
+  --color-fundo: #0a1020;
+
+  --color-tinta-amena: #46536b;
+  --color-tinta-apagada: #9aa5b8;
+  --color-tinta-sumida: #b3bccb;
+  --color-tinta-riscada: #a9b3c3;
+  --color-rotulo-secao: #a8233a;
+  --color-papel-leve: #f8f9fb;
+  --color-papel-medio: #f2f4f8;
+  --color-papel-escuro: #e3e8ef;
+  --color-papel-sombra: #d9dfe8;
+  --color-terracota-palido: #f8e1e4;
+  /* no Marinho a moldura é prateada: dourado com azul e vermelho ficava estranho */
+  --color-moldura-brilho: #eef1f6;
+  --color-moldura-luz: #c9d0dc;
+  --color-moldura-meio: #7d889c;
+  --color-moldura-sombra: #5b667a;
+}
+
+/* Verde inglês (o latão é o mesmo do Clássico, então a moldura também fica igual) */
+[data-tema="verde"] {
+  --color-mogno-escuro: #152a20;
+  --color-mogno: #1f3a2d;
+  --color-mogno-claro: #2a4b3b;
+  --color-terracota: #2f5a43;
+  --color-terracota-claro: #3a6b51;
+  --color-latao: #c9a227;
+  --color-latao-claro: #e0be6a;
+  --color-oliva: #2f5a43;
+  --color-papel: #f1ece0;
+  --color-papel-claro: #fffdf7;
+  --color-tinta: #1d2a22;
+  --color-tinta-forte: #131d17;
+  --color-tinta-media: #56655a;
+  --color-tinta-fraca: #5f6d62;
+  --color-rotulo: #5e6c5a; /* a prévia tinha #6c7a68, que dava 3,9:1 sobre o papel */
+  --color-creme: #f3eedf;
+  --color-fundo: #0f1712;
+
+  --color-tinta-amena: #4f5c52;
+  --color-tinta-apagada: #a7ae9f;
+  --color-tinta-sumida: #bcc1b3;
+  --color-tinta-riscada: #b2b8a8;
+  --color-rotulo-secao: #84661a;
+  --color-papel-leve: #fbf8f0;
+  --color-papel-medio: #f5f1e7;
+  --color-papel-escuro: #e8e3d4;
+  --color-papel-sombra: #ddd8c7;
+  --color-terracota-palido: #e2ebe4;
+}

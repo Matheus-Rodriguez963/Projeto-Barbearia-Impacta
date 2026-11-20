@@ -74,7 +74,7 @@ export default function PaginaClientes() {
               setBusca(e.target.value);
               setPagina(1); // toda busca nova começa da primeira página
             }}
-            className="w-full max-w-85 border border-mogno/30 bg-papel-claro px-3.5 py-2.5 text-[15px] text-tinta-forte outline-none focus:border-terracota focus:shadow-[0_0_0_3px_rgba(201,162,39,.25)]"
+            className="w-full max-w-85 border border-mogno/30 bg-papel-claro px-3.5 py-2.5 text-[15px] text-tinta-forte outline-none focus:border-terracota focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-latao)_25%,transparent)]"
           />
         </div>
 

@@ -73,12 +73,13 @@ export const DIAS_DA_SEMANA = [
 
 export type DiaDaSemana = (typeof DIAS_DA_SEMANA)[number]["sigla"];
 
-// as classes têm que estar escritas por inteiro, senão o Tailwind não gera a cor
+// as classes têm que estar escritas por inteiro, senão o Tailwind não gera a cor.
+// São as cores fixas dos barbeiros (bg-barbeiro-*), que não mudam com o tema.
 export const CORES_DA_AGENDA = [
-  { chave: "terracota", nome: "Terracota", fundo: "bg-terracota" },
-  { chave: "oliva", nome: "Oliva", fundo: "bg-oliva" },
-  { chave: "latao", nome: "Latão", fundo: "bg-latao" },
-  { chave: "petroleo", nome: "Azul-petróleo", fundo: "bg-petroleo" },
+  { chave: "terracota", nome: "Terracota", fundo: "bg-barbeiro-terracota" },
+  { chave: "oliva", nome: "Oliva", fundo: "bg-barbeiro-oliva" },
+  { chave: "latao", nome: "Latão", fundo: "bg-barbeiro-latao" },
+  { chave: "petroleo", nome: "Azul-petróleo", fundo: "bg-barbeiro-petroleo" },
 ] as const;
 
 export type CorDaAgenda = (typeof CORES_DA_AGENDA)[number]["chave"];

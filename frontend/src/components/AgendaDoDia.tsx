@@ -58,9 +58,10 @@ interface Coluna {
   almoco: [number, number] | null; // em minutos, já conferido se vale nesse dia
 }
 
-/** As cores do barbeiro saem das variáveis do Tailwind; o fundo é a mesma cor bem clarinha. */
+/** As cores do barbeiro saem das variáveis fixas (--color-barbeiro-*), que não mudam com o tema;
+    o fundo é a mesma cor bem clarinha. */
 function coresDo(cor: CorDaAgenda) {
-  const forte = `var(--color-${cor})`;
+  const forte = `var(--color-barbeiro-${cor})`;
   return {
     forte,
     clara: `color-mix(in srgb, ${forte} 16%, var(--color-papel-claro))`,
@@ -463,7 +464,7 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
               }}
             >
               {/* cabeçalho: o canto vazio e o nome de cada barbeiro */}
-              <div className="sticky top-0 left-0 z-8 border-b border-mogno/26 bg-[#f5eee2]" />
+              <div className="sticky top-0 left-0 z-8 border-b border-mogno/26 bg-papel-medio" />
               {colunas.map((coluna) => {
                 const doBarbeiro = naGrade.filter((a) => a.barbeiro.id === coluna.id);
                 // quanto do expediente já está com cliente (falta não conta, a cadeira ficou livre)
@@ -479,7 +480,7 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
                 return (
                   <div
                     key={coluna.id}
-                    className="sticky top-0 z-6 flex flex-col gap-1.5 border-b border-l border-b-mogno/26 border-l-mogno/16 bg-[#f5eee2] px-3.5 pt-3 pb-2.75"
+                    className="sticky top-0 z-6 flex flex-col gap-1.5 border-b border-l border-b-mogno/26 border-l-mogno/16 bg-papel-medio px-3.5 pt-3 pb-2.75"
                   >
                     <div className="flex items-center gap-2.25 font-titulo text-[17px] whitespace-nowrap text-tinta">
                       <Retrato foto={coluna.foto} nome={coluna.nome} className="size-7 p-0.5 text-[11px]" />
@@ -512,7 +513,7 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
               })}
 
               {/* a régua das horas */}
-              <div className="sticky left-0 z-5 border-r border-mogno/26 bg-[#f5eee2]" style={{ height: altura }}>
+              <div className="sticky left-0 z-5 border-r border-mogno/26 bg-papel-medio" style={{ height: altura }}>
                 {horasCheias.map((minuto, i) => (
                   <span
                     key={minuto}
@@ -527,7 +528,7 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
                 ))}
                 {mostrarAgora && (
                   <span
-                    className="absolute right-1 z-2 bg-[#b23a1c] px-1 pt-0.5 pb-px font-rotulo text-[10px] text-[#fff4e6]"
+                    className="absolute right-1 z-2 bg-agora px-1 pt-0.5 pb-px font-rotulo text-[10px] text-agora-claro"
                     style={{
                       top: (minutoAtual! - abre) * PX,
                       transform: "translateY(-50%)",
@@ -555,8 +556,8 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
                     height: altura,
                     // linha forte a cada hora e fraquinha a cada 15 min, como no protótipo
                     backgroundImage:
-                      "repeating-linear-gradient(180deg, rgba(74,27,16,.14) 0 1px, transparent 1px 90px)," +
-                      "repeating-linear-gradient(180deg, rgba(74,27,16,.055) 0 1px, transparent 1px 22.5px)",
+                      "repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-mogno) 14%, transparent) 0 1px, transparent 1px 90px)," +
+                      "repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-mogno) 5.5%, transparent) 0 1px, transparent 1px 22.5px)",
                   }}
                 >
                   {/* o que fica fora do expediente aparece hachurado */}
@@ -571,25 +572,25 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
                     .map(([de, ate]) => (
                       <div
                         key={de}
-                        className="absolute inset-x-0 bg-[#e4d9c6]/65"
+                        className="absolute inset-x-0 bg-papel-sombra/65"
                         style={{
                           top: (de - abre) * PX,
                           height: (ate - de) * PX,
                           backgroundImage:
-                            "repeating-linear-gradient(135deg, rgba(74,27,16,.06) 0 6px, transparent 6px 12px)",
+                            "repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-mogno) 6%, transparent) 0 6px, transparent 6px 12px)",
                         }}
                       />
                     ))}
 
-                  {/* o almoço: a faixa listrada em oliva do protótipo (.ag-pausa) */}
+                  {/* o almoço: a faixa listrada em verde do protótipo (.ag-pausa); é a cor de "livre", fixa */}
                   {coluna.almoco && (
                     <div
-                      className="absolute inset-x-0 z-0 flex items-center justify-center border-y border-dashed border-oliva/45 font-rotulo text-[10px] tracking-[0.24em] text-[#5b6338] uppercase"
+                      className="absolute inset-x-0 z-0 flex items-center justify-center border-y border-dashed border-sucesso/45 font-rotulo text-[10px] tracking-[0.24em] text-sucesso uppercase"
                       style={{
                         top: (coluna.almoco[0] - abre) * PX,
                         height: (coluna.almoco[1] - coluna.almoco[0]) * PX,
                         backgroundImage:
-                          "repeating-linear-gradient(135deg, rgba(90,98,54,.13) 0 6px, transparent 6px 12px)",
+                          "repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-sucesso) 13%, transparent) 0 6px, transparent 6px 12px)",
                       }}
                     >
                       Almoço
@@ -617,7 +618,7 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
                       if (!arrastado) return null;
                       return (
                         <div
-                          className={`pointer-events-none absolute inset-x-1.25 z-5 flex flex-col justify-center gap-0.5 border-2 border-dashed px-2.5 font-rotulo text-[10px] tracking-[0.14em] uppercase shadow-[0_10px_24px_rgba(58,20,9,.18)] transition-[top] duration-75 ease-out ${
+                          className={`pointer-events-none absolute inset-x-1.25 z-5 flex flex-col justify-center gap-0.5 border-2 border-dashed px-2.5 font-rotulo text-[10px] tracking-[0.14em] uppercase shadow-[0_10px_24px_color-mix(in_srgb,var(--color-tinta)_18%,transparent)] transition-[top] duration-75 ease-out ${
                             previa.cabe
                               ? "border-terracota bg-papel-claro/90 text-terracota"
                               : "border-erro/70 bg-erro/8 text-erro"
@@ -650,10 +651,10 @@ export default function AgendaDoDia({ dataInicial }: { dataInicial?: string }) {
 
                   {mostrarAgora && (
                     <div
-                      className="pointer-events-none absolute inset-x-0 z-3 border-t-2 border-[#b23a1c]"
+                      className="pointer-events-none absolute inset-x-0 z-3 border-t-2 border-agora"
                       style={{ top: (minutoAtual! - abre) * PX }}
                     >
-                      <span className="absolute -top-1.25 -left-1 size-2 animate-pulsar rounded-full bg-[#b23a1c]" />
+                      <span className="absolute -top-1.25 -left-1 size-2 animate-pulsar rounded-full bg-agora" />
                     </div>
                   )}
                 </div>
@@ -745,15 +746,15 @@ function Bloco({
   const estilo: React.CSSProperties =
     situacao === "concluido"
       ? {
-          background: "#fbf7ef",
-          borderColor: "rgba(74,27,16,.25)",
+          background: "var(--color-papel-leve)",
+          borderColor: "color-mix(in srgb, var(--color-mogno) 25%, transparent)",
           color: "var(--color-tinta-fraca)",
         }
       : situacao === "faltou"
         ? {
             background: "transparent",
             borderStyle: "dashed",
-            borderColor: "rgba(163,52,27,.5)",
+            borderColor: "color-mix(in srgb, var(--color-erro) 50%, transparent)",
             color: "var(--color-erro)",
           }
         : { background: clara, borderColor: forte };
@@ -768,10 +769,10 @@ function Bloco({
       onMouseMove={(evento) => evento.stopPropagation()} // em cima do cliente o fantasma some
       onPointerDown={onPegar}
       title={arrastavel ? "Clique pra ver, ou arraste pra remarcar" : undefined}
-      className={`absolute inset-x-1.25 z-2 flex animate-surgir flex-col text-left outline-offset-1 transition-[translate,box-shadow,outline-color,opacity] duration-200 select-none hover:z-4 hover:-translate-y-px hover:shadow-[0_6px_16px_rgba(58,20,9,.22)] ${
+      className={`absolute inset-x-1.25 z-2 flex animate-surgir flex-col text-left outline-offset-1 transition-[translate,box-shadow,outline-color,opacity] duration-200 select-none hover:z-4 hover:-translate-y-px hover:shadow-[0_6px_16px_color-mix(in_srgb,var(--color-tinta)_22%,transparent)] ${
         arrastavel ? "cursor-grab touch-none active:cursor-grabbing" : "cursor-pointer"
       } ${selecionado ? "z-4 outline-2 outline-latao" : "outline-2 outline-transparent"} ${
-        destacar ? "shadow-[0_0_0_4px_rgba(201,162,39,.35)]" : ""
+        destacar ? "shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-latao)_35%,transparent)]" : ""
       } ${esmaecido ? "opacity-40" : ""}`}
       style={{ top: topo, animationDelay: `${Math.min(posicao, 8) * 45}ms` }}
     >
@@ -800,7 +801,7 @@ function Bloco({
           className="flex-none border border-t-0 border-dashed"
           style={{
             height: agendamento.barbeiro.intervalo * PX,
-            borderColor: situacao === "concluido" ? "rgba(74,27,16,.25)" : forte,
+            borderColor: situacao === "concluido" ? "color-mix(in srgb, var(--color-mogno) 25%, transparent)" : forte,
             backgroundImage: `repeating-linear-gradient(135deg, ${clara} 0 4px, transparent 4px 8px)`,
           }}
         />
@@ -852,11 +853,11 @@ function ResumoDoDia({ agendamentos, carregando }: { agendamentos: Agendamento[]
       <Secao titulo="Legenda" />
       <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-[12px] text-tinta-media">
         <span className="flex items-center gap-2">
-          <i className="size-3.5 border border-terracota bg-[#f4e2d7]" />
+          <i className="size-3.5 border border-terracota bg-terracota-palido" />
           Agendado
         </span>
         <span className="flex items-center gap-2">
-          <i className="size-3.5 border border-mogno/25 bg-[#fbf7ef]" />
+          <i className="size-3.5 border border-mogno/25 bg-papel-leve" />
           Concluído
         </span>
         <span className="flex items-center gap-2">
@@ -867,16 +868,16 @@ function ResumoDoDia({ agendamentos, carregando }: { agendamentos: Agendamento[]
           <i
             className="size-3.5 border border-dashed border-terracota"
             style={{
-              backgroundImage: "repeating-linear-gradient(135deg, #f4e2d7 0 3px, transparent 3px 6px)",
+              backgroundImage: "repeating-linear-gradient(135deg, var(--color-terracota-palido) 0 3px, transparent 3px 6px)",
             }}
           />
           Limpeza
         </span>
         <span className="flex items-center gap-2">
           <i
-            className="size-3.5 border border-dashed border-oliva/50"
+            className="size-3.5 border border-dashed border-sucesso/50"
             style={{
-              backgroundImage: "repeating-linear-gradient(135deg, rgba(90,98,54,.25) 0 3px, transparent 3px 6px)",
+              backgroundImage: "repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-sucesso) 25%, transparent) 0 3px, transparent 3px 6px)",
             }}
           />
           Almoço
@@ -919,7 +920,7 @@ function Detalhe({
   return (
     <>
       <div className="flex items-center justify-between">
-        <span className="font-rotulo text-[10px] tracking-[0.26em] text-[#9a5a2e] uppercase">Agendamento</span>
+        <span className="font-rotulo text-[10px] tracking-[0.26em] text-rotulo-secao uppercase">Agendamento</span>
         <button
           type="button"
           onClick={onFechar}
@@ -943,7 +944,7 @@ function Detalhe({
         <span
           className={`w-fit border px-2 pt-1 pb-0.75 font-rotulo text-[9px] tracking-[0.18em] uppercase ${
             agendamento.situacao === "agendado"
-              ? "border-oliva text-oliva"
+              ? "border-sucesso text-sucesso"
               : agendamento.situacao === "concluido"
                 ? "border-mogno/30 text-tinta-fraca"
                 : "border-erro/50 text-erro"
@@ -990,7 +991,7 @@ function Detalhe({
             <div className="grid grid-cols-2 gap-2.5">
               <Botao
                 type="button"
-                estilo="oliva"
+                estilo="sucesso"
                 disabled={salvando}
                 onClick={() => mudar("concluido")}
                 className="px-3"

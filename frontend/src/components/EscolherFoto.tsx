@@ -95,7 +95,7 @@ export default function EscolherFoto({ foto }: { foto: ReturnType<typeof useFoto
           }}
         />
         <span
-          className="flex size-full items-center justify-center bg-[#ede3d0] bg-cover bg-center font-rotulo text-[9px] tracking-[0.2em] text-rotulo uppercase"
+          className="flex size-full items-center justify-center bg-papel-escuro bg-cover bg-center font-rotulo text-[9px] tracking-[0.2em] text-rotulo uppercase"
           style={foto.naTela ? { backgroundImage: `url("${foto.naTela}")` } : undefined}
         >
           {foto.preparando ? "..." : !foto.naTela && "Foto"}

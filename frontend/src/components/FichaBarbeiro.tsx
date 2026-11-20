@@ -32,7 +32,7 @@ export default function FichaBarbeiro(props: Props) {
         <Retrato foto={foto} nome={nomeExibido} className="size-23 p-0.75 text-[30px]" />
 
         <div className="font-titulo text-[22px] leading-tight text-tinta">{nomeExibido.trim() || "Novo barbeiro"}</div>
-        <div className="-mt-2 font-rotulo text-[9px] tracking-[0.24em] text-[#9a5a2e] uppercase">
+        <div className="-mt-2 font-rotulo text-[9px] tracking-[0.24em] text-rotulo-secao uppercase">
           Na casa desde {mesEAno(desde)}
         </div>
 
@@ -41,7 +41,7 @@ export default function FichaBarbeiro(props: Props) {
             {especialidades.map((especialidade) => (
               <span
                 key={especialidade}
-                className="border border-oliva/40 px-2.25 pt-1.25 pb-1 font-rotulo text-[9px] tracking-[0.16em] text-oliva uppercase"
+                className="border border-sucesso/40 px-2.25 pt-1.25 pb-1 font-rotulo text-[9px] tracking-[0.16em] text-sucesso uppercase"
               >
                 {especialidade}
               </span>
@@ -58,7 +58,7 @@ export default function FichaBarbeiro(props: Props) {
                 key={dia.sigla}
                 title={`${dia.nome}: ${trabalha ? "trabalha" : "folga"}`}
                 className={`flex size-7 items-center justify-center border font-rotulo text-[10px] ${
-                  trabalha ? "border-oliva bg-oliva text-[#f4eedc]" : "border-mogno/18 text-[#b49b80]"
+                  trabalha ? "border-sucesso bg-sucesso text-papel" : "border-mogno/18 text-tinta-apagada"
                 }`}
               >
                 {dia.letra}

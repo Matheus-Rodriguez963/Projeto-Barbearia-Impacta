@@ -26,7 +26,7 @@ export default function MenuLateral() {
     <aside className="madeira hidden w-56 shrink-0 flex-col bg-mogno md:flex">
       <div className="border-b border-latao/20 px-6 pt-7 pb-6">
         <div className="mb-1.5 font-rotulo text-[9px] tracking-[0.4em] text-latao uppercase">Barbearia</div>
-        <div className="font-titulo text-2xl leading-none font-bold text-[#f4e9d4]">Dom Alfredo</div>
+        <div className="font-titulo text-2xl leading-none font-bold text-creme">Dom Alfredo</div>
       </div>
 
       <nav className="flex flex-col py-4">
@@ -40,8 +40,8 @@ export default function MenuLateral() {
               aria-current={ativo ? "page" : undefined}
               className={`px-6 py-3 text-left font-rotulo text-[11px] tracking-[0.2em] uppercase ${
                 ativo
-                  ? "border-l-3 border-latao bg-black/25 text-[#f4e9d4]"
-                  : "text-[#b49b80] hover:bg-black/20 hover:text-[#f4e9d4]"
+                  ? "border-l-3 border-latao bg-black/25 text-creme"
+                  : "text-tinta-apagada hover:bg-black/20 hover:text-creme"
               }`}
             >
               {item.nome}

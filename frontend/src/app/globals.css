@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* os outros temas (Preto e ouro, Marinho, Verde inglês) redefinem as cores daqui de baixo */
+@import "./temas.css";
 
 /* Paleta da Barbearia Dom Alfredo — as mesmas cores do protótipo em HTML/CSS.
    Declarando aqui dentro do @theme, o Tailwind cria as classes sozinho
@@ -12,7 +14,6 @@
   --color-latao: #c9a227;
   --color-latao-claro: #e0be6a;
   --color-oliva: #5a6236;
-  --color-petroleo: #2f3a4a; /* etapa 2: a quarta cor que dá pra escolher pra agenda do barbeiro */
   --color-papel: #f2eadc;
   --color-papel-claro: #fffdf7;
   --color-tinta: #3a1409;
@@ -23,6 +24,38 @@
   --color-erro: #a3341b;
   --color-creme: #f6ead2;
   --color-fundo: #17110e;
+
+  /* Aparência: os tons que antes estavam escritos direto nos componentes.
+     São da casa, então cada tema do temas.css também redefine. */
+  --color-tinta-amena: #6b563f; /* texto das opções não marcadas */
+  --color-tinta-apagada: #b49b80; /* dica, folga, coisa desligada */
+  --color-tinta-sumida: #c4b39c; /* dia em que não abre */
+  --color-tinta-riscada: #bba88f; /* horário ocupado, riscado */
+  --color-rotulo-secao: #9a5a2e; /* o rotulinho alaranjado em cima das seções */
+  --color-papel-leve: #fbf7ef; /* atendimento concluído */
+  --color-papel-medio: #f5eee2; /* cabeçalho da agenda */
+  --color-papel-escuro: #ede3d0; /* foto ainda vazia */
+  --color-papel-sombra: #e4d9c6; /* fora do expediente */
+  --color-terracota-palido: #f4e2d7; /* fundo do horário escolhido */
+  /* o degradê da moldura de latão (do mais claro pro mais escuro) */
+  --color-moldura-brilho: #f2dca0;
+  --color-moldura-luz: #e6c77e;
+  --color-moldura-meio: #a87f2c;
+  --color-moldura-sombra: #8e6822;
+
+  /* Cores com significado: NÃO mudam com o tema. O "certo" continua verde
+     e o "agora" continua vermelho em qualquer aparência. */
+  --color-sucesso: #5a6236; /* livre, agendado, concluído, ligado */
+  --color-sucesso-texto: #4c5330; /* texto do aviso de "cabe certinho" */
+  --color-erro-texto: #8a2b16; /* texto do aviso de erro */
+  --color-agora: #b23a1c; /* a linha do horário de agora */
+  --color-agora-claro: #fff4e6; /* a horinha escrita em cima dela */
+
+  /* A cor de cada barbeiro na agenda identifica o barbeiro, não a casa, então também é fixa. */
+  --color-barbeiro-terracota: #7b2e17;
+  --color-barbeiro-oliva: #5a6236;
+  --color-barbeiro-latao: #c9a227;
+  --color-barbeiro-petroleo: #2f3a4a;
 
   /* as três fontes vêm do next/font lá no layout.tsx */
   --font-titulo: var(--fonte-bodoni), Georgia, serif;
@@ -56,8 +89,8 @@
     to { opacity: 0; }
   }
   @keyframes pulsar {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(178, 58, 28, 0.45); }
-    50% { box-shadow: 0 0 0 5px rgba(178, 58, 28, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-agora) 45%, transparent); }
+    50% { box-shadow: 0 0 0 5px transparent; }
   }
 }
 
@@ -96,12 +129,23 @@ body {
 /* Etapa 2: a moldura dourada da foto do barbeiro. O degradê imita o reflexo do latão,
    e com classe do Tailwind ficaria uma linha enorme e ilegível. */
 .moldura-latao {
-  background-image: linear-gradient(145deg, #e6c77e 0%, #a87f2c 30%, #f2dca0 55%, #8e6822 100%);
+  background-image: linear-gradient(
+    145deg,
+    var(--color-moldura-luz) 0%,
+    var(--color-moldura-meio) 30%,
+    var(--color-moldura-brilho) 55%,
+    var(--color-moldura-sombra) 100%
+  );
 }
 
-/* O papel levemente pautado da área de trabalho. */
+/* O papel levemente pautado da área de trabalho. A linha é a tinta média bem fraquinha,
+   assim ela acompanha o tema. */
 .papel-pautado {
-  background-image: repeating-linear-gradient(0deg, rgba(122, 79, 45, 0.03) 0 2px, transparent 2px 4px);
+  background-image: repeating-linear-gradient(
+    0deg,
+    color-mix(in srgb, var(--color-tinta-media) 3%, transparent) 0 2px,
+    transparent 2px 4px
+  );
 }
 
 /* Barra de rolagem no tom da madeira. Sem isso ela fica cinza do sistema
@@ -121,7 +165,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(74, 27, 16, 0.35);
+  background-color: color-mix(in srgb, var(--color-mogno) 35%, transparent);
   /* a borda transparente + background-clip deixa uma folga dos lados,
      senão a barra encosta na borda da área e fica grossa demais */
   border: 2px solid transparent;
@@ -139,7 +183,7 @@ body {
 
 /* no menu lateral, que é escuro, a barra precisa ser clara */
 .madeira::-webkit-scrollbar-thumb {
-  background-color: rgba(201, 162, 39, 0.35);
+  background-color: color-mix(in srgb, var(--color-latao) 35%, transparent);
 }
 
 .madeira::-webkit-scrollbar-thumb:hover {
@@ -151,11 +195,11 @@ body {
 @supports not selector(::-webkit-scrollbar) {
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(74, 27, 16, 0.35) transparent;
+    scrollbar-color: color-mix(in srgb, var(--color-mogno) 35%, transparent) transparent;
   }
 
   .madeira {
-    scrollbar-color: rgba(201, 162, 39, 0.35) transparent;
+    scrollbar-color: color-mix(in srgb, var(--color-latao) 35%, transparent) transparent;
   }
 }
 

@@ -1,12 +1,12 @@
-// Botão do sistema em três versões: normal, oliva e o principal (terracota).
+// Botão do sistema em três versões: normal, sucesso (verde, fixo em qualquer tema) e o principal (terracota).
 
 import Link from "next/link";
 
-type Estilo = "normal" | "oliva" | "principal";
+type Estilo = "normal" | "sucesso" | "principal";
 
 const ESTILOS: Record<Estilo, string> = {
   normal: "border-mogno/30 text-tinta-media hover:border-terracota hover:text-tinta",
-  oliva: "border-oliva/55 text-oliva hover:bg-oliva/10",
+  sucesso: "border-sucesso/55 text-sucesso hover:bg-sucesso/10",
   principal: "border-latao bg-terracota text-creme px-7 hover:bg-terracota-claro",
 };
 

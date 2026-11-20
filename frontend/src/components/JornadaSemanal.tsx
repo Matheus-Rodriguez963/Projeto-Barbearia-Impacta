@@ -59,7 +59,7 @@ export default function JornadaSemanal({ semana, diasComErro, erro, onMudarDia }
                   />
                 </div>
               ) : (
-                <span className="font-rotulo text-[10px] tracking-[0.2em] text-[#b49b80] uppercase">Folga</span>
+                <span className="font-rotulo text-[10px] tracking-[0.2em] text-tinta-apagada uppercase">Folga</span>
               )}
             </div>
           );

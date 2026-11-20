@@ -27,7 +27,7 @@ export default function Chave({ id, rotulo, dica, ligada, onMudar }: Props) {
         aria-labelledby={id}
         onClick={() => onMudar(!ligada)}
         className={`relative h-5 w-8 shrink-0 cursor-pointer border transition-colors ${
-          ligada ? "border-oliva bg-oliva" : "border-mogno/30 bg-papel"
+          ligada ? "border-sucesso bg-sucesso" : "border-mogno/30 bg-papel"
         }`}
       >
         <span

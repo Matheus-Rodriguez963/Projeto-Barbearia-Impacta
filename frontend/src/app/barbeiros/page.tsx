@@ -118,7 +118,7 @@ export default function PaginaBarbeiros() {
                     className={`-ml-px cursor-pointer border px-3.5 py-2.75 font-rotulo text-[10px] tracking-[0.18em] uppercase first:ml-0 ${
                       marcado
                         ? "relative border-terracota bg-terracota text-creme"
-                        : "border-mogno/30 text-[#6b563f] hover:text-tinta"
+                        : "border-mogno/30 text-tinta-amena hover:text-tinta"
                     }`}
                   >
                     {opcao.nome}
@@ -135,7 +135,7 @@ export default function PaginaBarbeiros() {
                 setBusca(e.target.value);
                 setPagina(1);
               }}
-              className="w-full min-w-0 flex-1 border border-mogno/30 bg-papel-claro px-3.5 py-2.5 text-[15px] text-tinta-forte outline-none focus:border-terracota focus:shadow-[0_0_0_3px_rgba(201,162,39,.25)] sm:w-75"
+              className="w-full min-w-0 flex-1 border border-mogno/30 bg-papel-claro px-3.5 py-2.5 text-[15px] text-tinta-forte outline-none focus:border-terracota focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-latao)_25%,transparent)] sm:w-75"
             />
           </div>
         </div>

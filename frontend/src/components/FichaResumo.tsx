@@ -34,7 +34,7 @@ export default function FichaResumo({ nome, telefone, email, barbeiro, origem, s
             <div className="truncate font-titulo text-[19px] leading-tight text-tinta">
               {nome.trim() || "Novo cliente"}
             </div>
-            <div className="font-rotulo text-[9px] tracking-[0.2em] text-[#9a5a2e] uppercase">
+            <div className="font-rotulo text-[9px] tracking-[0.2em] text-rotulo-secao uppercase">
               {status ?? "Novo · sem histórico"}
             </div>
           </div>

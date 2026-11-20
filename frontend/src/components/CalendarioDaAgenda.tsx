@@ -117,7 +117,7 @@ export default function CalendarioDaAgenda({ data, hoje, versao, onEscolher }: P
               className={`flex h-9 cursor-pointer flex-col items-center justify-center gap-1 text-[13px] transition-colors ${
                 escolhido
                   ? "bg-terracota text-creme"
-                  : `hover:bg-terracota/7 ${fechado ? "text-[#bfae97]" : "text-tinta"} ${
+                  : `hover:bg-terracota/7 ${fechado ? "text-tinta-sumida" : "text-tinta"} ${
                       dia === hoje ? "shadow-[inset_0_0_0_1px_var(--color-latao)]" : ""
                     }`
               }`}
@@ -128,7 +128,7 @@ export default function CalendarioDaAgenda({ data, hoje, versao, onEscolher }: P
                 className={`block h-0.75 w-[62%] ${fechado ? "invisible" : escolhido ? "bg-white/25" : "bg-mogno/10"}`}
               >
                 <b
-                  className={`block h-full transition-[width] duration-500 ${escolhido ? "bg-latao-claro" : "bg-oliva"}`}
+                  className={`block h-full transition-[width] duration-500 ${escolhido ? "bg-latao-claro" : "bg-sucesso"}`}
                   style={{ width: `${info?.ocupacao ?? 0}%` }}
                 />
               </i>

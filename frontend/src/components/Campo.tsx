@@ -6,7 +6,7 @@
 // (o Tailwind põe 1.5 e ele fica 5px mais alto); o textarea tem a entrelinha própria dele
 export const classeInput =
   "w-full border bg-papel-claro px-3.5 py-3 text-base text-tinta-forte outline-none [&:is(input,select)]:leading-[normal] " +
-  "focus:border-terracota focus:shadow-[0_0_0_3px_rgba(201,162,39,.25)]";
+  "focus:border-terracota focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-latao)_25%,transparent)]";
 
 export function classeInputComErro(temErro: boolean) {
   return `${classeInput} ${temErro ? "border-erro" : "border-mogno/30"}`;
@@ -26,7 +26,7 @@ export default function Campo({ rotulo, opcional, erro, className = "", children
       <span className="font-rotulo text-[10px] tracking-[0.22em] text-rotulo uppercase">
         {rotulo}
         {opcional && (
-          <span className="ml-1.5 font-texto text-[11px] tracking-normal text-[#b49b80] normal-case">
+          <span className="ml-1.5 font-texto text-[11px] tracking-normal text-tinta-apagada normal-case">
             (opcional)
           </span>
         )}
@@ -45,7 +45,7 @@ export function Seletor({ temErro = false, ...resto }: React.ComponentProps<"sel
   return (
     <span className="relative block">
       <select className={`${classeInputComErro(temErro)} cursor-pointer appearance-none pr-9`} {...resto} />
-      <span className="pointer-events-none absolute top-4 right-3.5 text-[11px] text-[#9a5a2e]">▼</span>
+      <span className="pointer-events-none absolute top-4 right-3.5 text-[11px] text-rotulo-secao">▼</span>
     </span>
   );
 }
