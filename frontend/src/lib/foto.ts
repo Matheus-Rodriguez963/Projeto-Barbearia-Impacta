@@ -19,19 +19,20 @@ async function abrirImagem(arquivo: File): Promise<ImageBitmap> {
   });
 }
 
-function novaTela(largura: number, altura: number) {
+// oQue: "foto" na foto do barbeiro, "imagem" na logo
+function novaTela(largura: number, altura: number, oQue: string) {
   const tela = document.createElement("canvas");
   tela.width = largura;
   tela.height = altura;
   const pincel = tela.getContext("2d");
-  if (!pincel) throw new Error("Seu navegador não conseguiu preparar a foto.");
+  if (!pincel) throw new Error(`Seu navegador não conseguiu preparar a ${oQue}.`);
   return { tela, pincel };
 }
 
-function virarArquivo(tela: HTMLCanvasElement, tipo: string, qualidade?: number): Promise<Blob> {
+function virarArquivo(tela: HTMLCanvasElement, oQue: string, tipo: string, qualidade?: number): Promise<Blob> {
   return new Promise((resolver, rejeitar) =>
     tela.toBlob(
-      (blob) => (blob ? resolver(blob) : rejeitar(new Error("Não consegui preparar a foto."))),
+      (blob) => (blob ? resolver(blob) : rejeitar(new Error(`Não consegui preparar a ${oQue}.`))),
       tipo,
       qualidade,
     ),
@@ -47,11 +48,11 @@ export async function prepararFoto(arquivo: File): Promise<Blob> {
   const x = (imagem.width - lado) / 2;
   const y = (imagem.height - lado) / 2;
 
-  const { tela, pincel } = novaTela(LADO, LADO);
+  const { tela, pincel } = novaTela(LADO, LADO, "foto");
   pincel.drawImage(imagem, x, y, lado, lado, 0, 0, LADO, LADO);
   imagem.close();
 
-  return virarArquivo(tela, "image/jpeg", 0.85);
+  return virarArquivo(tela, "foto", "image/jpeg", 0.85);
 }
 
 /** Reduz a logo pra caber em 600x200 sem cortar nada e devolve um PNG.
@@ -64,9 +65,9 @@ export async function prepararLogo(arquivo: File): Promise<Blob> {
   const largura = Math.max(1, Math.round(imagem.width * escala));
   const altura = Math.max(1, Math.round(imagem.height * escala));
 
-  const { tela, pincel } = novaTela(largura, altura);
+  const { tela, pincel } = novaTela(largura, altura, "imagem");
   pincel.drawImage(imagem, 0, 0, largura, altura);
   imagem.close();
 
-  return virarArquivo(tela, "image/png");
+  return virarArquivo(tela, "imagem", "image/png");
 }

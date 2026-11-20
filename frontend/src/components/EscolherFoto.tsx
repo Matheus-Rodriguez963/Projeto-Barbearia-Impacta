@@ -11,7 +11,11 @@ import { enviarFotoBarbeiro, removerFotoBarbeiro } from "@/lib/api";
 import { prepararFoto } from "@/lib/foto";
 import type { Barbeiro } from "@/lib/tipos";
 
-export function useFotoDePerfil(fotoSalva: string | null, preparar: (arquivo: File) => Promise<Blob> = prepararFoto) {
+export function useFotoDePerfil(
+  fotoSalva: string | null,
+  preparar: (arquivo: File) => Promise<Blob> = prepararFoto,
+  mensagemDeInvalida = "Foto inválida.",
+) {
   const [nova, setNova] = useState<Blob | null>(null);
   const [previa, setPrevia] = useState<string | null>(null);
   const [tirar, setTirar] = useState(false);
@@ -34,7 +38,7 @@ export function useFotoDePerfil(fotoSalva: string | null, preparar: (arquivo: Fi
       setPrevia(URL.createObjectURL(pronta));
       setTirar(false);
     } catch (problema) {
-      setErro(problema instanceof Error ? problema.message : "Foto inválida.");
+      setErro(problema instanceof Error ? problema.message : mensagemDeInvalida);
     } finally {
       setPreparando(false);
     }

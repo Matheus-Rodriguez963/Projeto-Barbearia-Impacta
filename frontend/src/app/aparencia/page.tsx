@@ -25,6 +25,10 @@ interface Formulario {
   tema: Tema;
 }
 
+// o "(opcional)" deixa o rótulo da linha de cima 2,5px mais alto; com a mesma altura nos dois
+// rótulos, os dois campos lado a lado ficam alinhados
+const ROTULO_DA_MESMA_ALTURA = "[&>span:first-child]:h-4.5";
+
 function preencherCom(aparencia: Aparencia): Formulario {
   return { linha_de_cima: aparencia.linha_de_cima, nome: aparencia.nome, tema: aparencia.tema };
 }
@@ -91,7 +95,11 @@ export default function PaginaAparencia() {
   // a que está gravada; ao abrir a tela não tem prévia nenhuma, então é a do contexto
   const [salva, setSalva] = useState(aparencia);
   const { dados, setDados, erros, setErros, aviso, setAviso, mudar } = useFormulario(() => preencherCom(salva));
-  const logo = useFotoDePerfil(salva.logo_url ? enderecoDaLogo(salva.logo_url) : null, prepararLogo);
+  const logo = useFotoDePerfil(
+    salva.logo_url ? enderecoDaLogo(salva.logo_url) : null,
+    prepararLogo,
+    "Imagem inválida.",
+  );
   const [salvando, setSalvando] = useState(false);
   const [salvou, setSalvou] = useState(false);
 
@@ -155,7 +163,8 @@ export default function PaginaAparencia() {
     setSalva(nova);
     setDados(preencherCom(nova));
     if (!avisoDaLogo) logo.recomecar();
-    mostrarPrevia(null);
+    // o atualizar() tira a prévia; se a logo não foi, ela continua na prévia, igual à moldura
+    if (avisoDaLogo) mostrarPrevia({ logo_url: logoNaPrevia });
     setAviso(avisoDaLogo);
     setSalvou(!avisoDaLogo);
     setSalvando(false);
@@ -179,7 +188,12 @@ export default function PaginaAparencia() {
           <Secao titulo="Nome" />
 
           <div className="mb-8.5 grid grid-cols-1 gap-x-6.5 gap-y-5.5 md:grid-cols-2">
-            <Campo rotulo="Linha de cima" opcional erro={erros.linha_de_cima}>
+            <Campo
+              rotulo="Linha de cima"
+              opcional
+              erro={erros.linha_de_cima}
+              className={ROTULO_DA_MESMA_ALTURA}
+            >
               <input
                 type="text"
                 autoComplete="off"
@@ -191,7 +205,7 @@ export default function PaginaAparencia() {
               />
             </Campo>
 
-            <Campo rotulo="Nome da barbearia" erro={erros.nome}>
+            <Campo rotulo="Nome da barbearia" erro={erros.nome} className={ROTULO_DA_MESMA_ALTURA}>
               <input
                 type="text"
                 autoComplete="off"
