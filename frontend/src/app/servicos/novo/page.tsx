@@ -3,7 +3,7 @@
 import FormularioServico from "@/components/FormularioServico";
 import Topo from "@/components/Topo";
 
-export const metadata = { title: "Novo serviço — Barbearia Dom Alfredo" };
+export const metadata = { title: "Novo serviço" };
 
 export default function PaginaNovoServico() {
   return (

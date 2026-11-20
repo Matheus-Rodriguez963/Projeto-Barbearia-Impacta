@@ -4,7 +4,7 @@
 import AgendaDoDia from "@/components/AgendaDoDia";
 import Topo from "@/components/Topo";
 
-export const metadata = { title: "Agenda — Barbearia Dom Alfredo" };
+export const metadata = { title: "Agenda" };
 
 export default async function PaginaAgenda({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
   const { data } = await searchParams;

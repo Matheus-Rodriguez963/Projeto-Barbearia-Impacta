@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import Botao, { BotaoLink } from "@/components/Botao";
 import BuscaDeCliente, { type ClienteEscolhido } from "@/components/BuscaDeCliente";
 import Confirmacao from "@/components/Confirmacao";
+import { useAparencia } from "@/components/AparenciaContexto";
 import Retrato from "@/components/Retrato";
 import {
   dataPorExtenso,
@@ -33,7 +34,7 @@ import {
   marcarAgendamento,
   remarcarAgendamento,
 } from "@/lib/api";
-import type { Agendamento, Barbeiro, GradeDoDia, Servico } from "@/lib/tipos";
+import { marcaDaAparencia, type Agendamento, type Barbeiro, type GradeDoDia, type Servico } from "@/lib/tipos";
 
 // quantos dias pra frente a tela mostra, igual ao protótipo
 const DIAS_NA_TELA = 14;
@@ -80,6 +81,7 @@ function Vazio({ children }: { children: React.ReactNode }) {
 
 export default function FormularioAgendamento({ agendamentoExistente, inicial = {} }: Props) {
   const remarcando = Boolean(agendamentoExistente);
+  const { aparencia } = useAparencia();
 
   // o que vem da API uma vez só
   const [cardapio, setCardapio] = useState<Servico[] | null>(null);
@@ -476,7 +478,7 @@ export default function FormularioAgendamento({ agendamentoExistente, inicial = 
               {remarcando ? "Nova reserva" : "A reserva"}
             </h3>
             <p className="m-0 mb-5 text-center font-rotulo text-[10px] tracking-[0.22em] text-rotulo uppercase">
-              Barbearia Dom Alfredo
+              {marcaDaAparencia(aparencia)}
             </p>
 
             <dl className="m-0 flex flex-col">

@@ -253,3 +253,43 @@ export interface ResumoDoMes {
   servicos: ServicoDoRanking[];
   pares: ParClienteBarbeiro[];
 }
+
+// ---------------------------------------------------------------- aparência
+
+export type Tema = "classico" | "preto" | "marinho" | "verde";
+
+// as mesmas chaves do schemas/aparencia.py; as cores de cada uma estão em app/temas.css
+export const TEMAS: readonly { chave: Tema; nome: string; descricao: string }[] = [
+  { chave: "classico", nome: "Clássico", descricao: "Mogno, papel e latão" },
+  { chave: "preto", nome: "Preto e ouro", descricao: "Fundo escuro com dourado" },
+  { chave: "marinho", nome: "Marinho", descricao: "Azul profundo e latão" },
+  { chave: "verde", nome: "Verde inglês", descricao: "Verde escuro e latão" },
+];
+
+export interface Aparencia {
+  linha_de_cima: string; // a linha pequena em cima do nome; pode ficar vazia
+  nome: string;
+  tema: Tema;
+  logo_url: string | null; // caminho na API, ex: "/api/aparencia/logo?v=1760000000"
+  atualizado_em: string | null;
+}
+
+export interface DadosDaAparencia {
+  linha_de_cima?: string;
+  nome?: string;
+  tema?: Tema;
+}
+
+// o que vale quando a API ainda não respondeu (ou está fora do ar)
+export const APARENCIA_PADRAO: Aparencia = {
+  linha_de_cima: "Barbearia",
+  nome: "Dom Alfredo",
+  tema: "classico",
+  logo_url: null,
+  atualizado_em: null,
+};
+
+/** O nome completo da barbearia, ex: "Barbearia Dom Alfredo". */
+export function marcaDaAparencia(aparencia: Pick<Aparencia, "linha_de_cima" | "nome">) {
+  return [aparencia.linha_de_cima, aparencia.nome].filter(Boolean).join(" ");
+}

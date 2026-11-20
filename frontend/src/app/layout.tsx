@@ -4,7 +4,10 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
+import { ProvedorDeAparencia } from "@/components/AparenciaContexto";
 import MenuLateral from "@/components/MenuLateral";
+import { URL_DA_API } from "@/lib/api";
+import { APARENCIA_PADRAO, marcaDaAparencia, type Aparencia } from "@/lib/tipos";
 import "./globals.css";
 
 // As fontes ficam dentro do projeto (pasta fontes/, com a licença de cada uma) em vez de vir
@@ -16,25 +19,54 @@ const bodoni = localFont({ src: "./fontes/bodoni-moda.woff2", weight: "400 900",
 const oswald = localFont({ src: "./fontes/oswald.woff2", weight: "200 700", variable: "--fonte-oswald" });
 const karla = localFont({ src: "./fontes/karla.woff2", weight: "200 800", variable: "--fonte-karla" });
 
-export const metadata: Metadata = {
-  title: "Barbearia Dom Alfredo",
-  description: "Sistema de cadastro de clientes da Barbearia Dom Alfredo.",
-};
+// Lê a aparência salva direto da API, no servidor, pra o tema já vir certo no primeiro
+// desenho (sem piscar). Se a API não responder logo, o site abre no Clássico mesmo.
+async function lerAparencia(): Promise<Aparencia> {
+  try {
+    const resposta = await fetch(`${URL_DA_API}/api/aparencia`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(1500),
+    });
+    if (!resposta.ok) return APARENCIA_PADRAO;
+    return { ...APARENCIA_PADRAO, ...(await resposta.json()) };
+  } catch {
+    return APARENCIA_PADRAO;
+  }
+}
 
-export default function LayoutRaiz({ children }: { children: React.ReactNode }) {
+export async function generateMetadata(): Promise<Metadata> {
+  const marca = marcaDaAparencia(await lerAparencia());
+
+  return {
+    // cada página passa só o próprio título ("Agenda") e o template completa com a marca
+    title: { default: marca, template: `%s — ${marca}` },
+    description: `Sistema de cadastro de clientes da ${marca}.`,
+  };
+}
+
+export default async function LayoutRaiz({ children }: { children: React.ReactNode }) {
+  const aparencia = await lerAparencia();
+
   return (
     // as variáveis das fontes ficam no <html> e não no <body>: o tema do Tailwind
     // (--font-titulo etc.) é montado no <html>, e se a fonte só existisse no <body>
-    // a conta dava inválida e o navegador caía na fonte do sistema
-    <html lang="pt-BR" className={`${bodoni.variable} ${oswald.variable} ${karla.variable}`}>
+    // a conta dava inválida e o navegador caía na fonte do sistema.
+    // O data-tema também fica aqui: o Clássico é o padrão e dispensa o atributo.
+    <html
+      lang="pt-BR"
+      data-tema={aparencia.tema === "classico" ? undefined : aparencia.tema}
+      className={`${bodoni.variable} ${oswald.variable} ${karla.variable}`}
+    >
       <body>
-        {/* o sistema ocupa a tela inteira: h-dvh é a altura real da janela,
-            e o que passa disso rola dentro de cada área, não na página */}
-        <div className="flex h-dvh w-full overflow-hidden">
-          <MenuLateral />
+        <ProvedorDeAparencia inicial={aparencia}>
+          {/* o sistema ocupa a tela inteira: h-dvh é a altura real da janela,
+              e o que passa disso rola dentro de cada área, não na página */}
+          <div className="flex h-dvh w-full overflow-hidden">
+            <MenuLateral />
 
-          <main className="papel-pautado flex min-w-0 flex-1 flex-col bg-papel">{children}</main>
-        </div>
+            <main className="papel-pautado flex min-w-0 flex-1 flex-col bg-papel">{children}</main>
+          </div>
+        </ProvedorDeAparencia>
       </body>
     </html>
   );

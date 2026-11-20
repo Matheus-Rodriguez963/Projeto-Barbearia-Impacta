@@ -3,8 +3,10 @@
 
 import type {
   Agendamento,
+  Aparencia,
   Barbeiro,
   Cliente,
+  DadosDaAparencia,
   DadosDoAgendamento,
   DadosDoBarbeiro,
   DadosDoCliente,
@@ -22,7 +24,7 @@ import type {
   Situacao,
 } from "./tipos";
 
-const URL_DA_API = process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000";
+export const URL_DA_API = process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000";
 
 /** Erro meu, pra conseguir mostrar a mensagem no campo certo do formulário. */
 export class ErroDaApi extends Error {
@@ -250,4 +252,29 @@ export function resumoDoMes(ano: number, mes: number, barbeiroId?: number) {
   if (barbeiroId !== undefined) parametros.set("barbeiro_id", String(barbeiroId));
 
   return requisitar<ResumoDoMes>(`/api/historico/resumo?${parametros}`);
+}
+
+// ---------------------------------------------------------------- aparência
+
+export function pegarAparencia() {
+  return requisitar<Aparencia>("/api/aparencia");
+}
+
+export function salvarAparencia(dados: DadosDaAparencia) {
+  return requisitar<Aparencia>("/api/aparencia", { method: "PUT", body: JSON.stringify(dados) });
+}
+
+/** O logo_url que a API devolve é só o caminho; aqui eu junto com o endereço da API. */
+export function enderecoDaLogo(logoUrl: string) {
+  return `${URL_DA_API}${logoUrl}`;
+}
+
+export function enviarLogo(logo: Blob) {
+  const corpo = new FormData();
+  corpo.append("logo", logo, "logo.png");
+  return requisitar<Aparencia>("/api/aparencia/logo", { method: "PUT", body: corpo });
+}
+
+export function removerLogo() {
+  return requisitar<Aparencia>("/api/aparencia/logo", { method: "DELETE" });
 }

@@ -4,7 +4,7 @@
 import FormularioAgendamento from "@/components/FormularioAgendamento";
 import Topo from "@/components/Topo";
 
-export const metadata = { title: "Novo agendamento — Barbearia Dom Alfredo" };
+export const metadata = { title: "Novo agendamento" };
 
 type Parametros = { barbeiro?: string; data?: string; hora?: string };
 
