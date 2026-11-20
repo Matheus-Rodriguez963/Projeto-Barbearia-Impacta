@@ -7,24 +7,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useAparencia } from "@/components/AparenciaContexto";
-import { enderecoDaLogo } from "@/lib/api";
-
-// Só entra aqui o que já funciona de verdade. O Caixa aparece quando a etapa dele
-// ficar pronta — botão que não faz nada só engana quem está usando.
-// Barbeiros entrou na etapa 2; Agenda e Serviços na etapa 3, Histórico na etapa 4 (a agenda vai em cima
-// porque é a tela que a recepção deixa aberta o dia todo).
-const ITENS = [
-  { nome: "Agenda", caminho: "/agenda" },
-  { nome: "Clientes", caminho: "/clientes" },
-  { nome: "Barbeiros", caminho: "/barbeiros" },
-  { nome: "Serviços", caminho: "/servicos" },
-  { nome: "Histórico", caminho: "/historico" },
-  { nome: "Aparência", caminho: "/aparencia" },
-];
+import { useUsuario } from "@/components/UsuarioContexto";
+import { enderecoDaLogo, sair } from "@/lib/api";
+import { MENUS } from "@/lib/tipos";
 
 export default function MenuLateral() {
   const caminhoAtual = usePathname();
   const { aparencia } = useAparencia();
+  const usuario = useUsuario();
+
+  // Só entra aqui o que já funciona de verdade (o Caixa aparece quando a etapa dele ficar pronta)
+  // e só o que foi liberado pra pessoa; "Acessos" é só do admin, no fim.
+  // A ordem e os nomes vêm de MENUS (a agenda vai em cima: é a tela que a recepção deixa aberta o dia todo).
+  const itens = [
+    ...MENUS.filter((m) => usuario.menus.includes(m.menu)),
+    ...(usuario.tipo === "admin" ? [{ menu: "acessos", nome: "Acessos", caminho: "/acessos" }] : []),
+  ];
 
   return (
     // some no celular, que é o que o CSS original fazia
@@ -52,12 +50,12 @@ export default function MenuLateral() {
       </div>
 
       <nav className="flex flex-col py-4">
-        {ITENS.map((item) => {
+        {itens.map((item) => {
           const ativo = caminhoAtual.startsWith(item.caminho);
 
           return (
             <Link
-              key={item.nome}
+              key={item.menu}
               href={item.caminho}
               aria-current={ativo ? "page" : undefined}
               className={`px-6 py-3 text-left font-rotulo text-[11px] tracking-[0.2em] uppercase ${
@@ -71,6 +69,32 @@ export default function MenuLateral() {
           );
         })}
       </nav>
+
+      {/* rodapé preso embaixo: quem está logado, trocar a senha e sair */}
+      <div className="mt-auto flex flex-col gap-3 border-t border-latao/20 px-6 py-5">
+        <div className="truncate font-texto text-[13px] text-creme" title={usuario.login}>
+          {usuario.login}
+        </div>
+        <Link
+          href="/senha"
+          className="font-rotulo text-[10px] tracking-[0.2em] text-tinta-apagada uppercase hover:text-creme"
+        >
+          Trocar senha
+        </Link>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await sair();
+            } finally {
+              window.location.replace("/login");
+            }
+          }}
+          className="cursor-pointer text-left font-rotulo text-[10px] tracking-[0.2em] text-latao uppercase hover:text-creme"
+        >
+          Sair
+        </button>
+      </div>
     </aside>
   );
 }

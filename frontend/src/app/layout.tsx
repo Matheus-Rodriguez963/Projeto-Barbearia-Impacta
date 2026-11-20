@@ -6,8 +6,12 @@ import localFont from "next/font/local";
 import { cache } from "react";
 
 import { ProvedorDeAparencia } from "@/components/AparenciaContexto";
+import GuardaDeMenu from "@/components/GuardaDeMenu";
+import IrParaLogin from "@/components/IrParaLogin";
 import MenuLateral from "@/components/MenuLateral";
+import { ProvedorDeUsuario } from "@/components/UsuarioContexto";
 import { URL_DA_API } from "@/lib/api";
+import { lerUsuario } from "@/lib/servidor";
 import { APARENCIA_PADRAO, marcaDaAparencia, type Aparencia } from "@/lib/tipos";
 import "./globals.css";
 
@@ -48,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LayoutRaiz({ children }: { children: React.ReactNode }) {
-  const aparencia = await lerAparencia();
+  const [aparencia, usuario] = await Promise.all([lerAparencia(), lerUsuario()]);
 
   return (
     // as variáveis das fontes ficam no <html> e não no <body>: o tema do Tailwind
@@ -62,13 +66,25 @@ export default async function LayoutRaiz({ children }: { children: React.ReactNo
     >
       <body>
         <ProvedorDeAparencia inicial={aparencia}>
-          {/* o sistema ocupa a tela inteira: h-dvh é a altura real da janela,
-              e o que passa disso rola dentro de cada área, não na página */}
-          <div className="flex h-dvh w-full overflow-hidden">
-            <MenuLateral />
+          {usuario ? (
+            <ProvedorDeUsuario usuario={usuario}>
+              <GuardaDeMenu />
+              {/* o sistema ocupa a tela inteira: h-dvh é a altura real da janela,
+                  e o que passa disso rola dentro de cada área, não na página */}
+              <div className="flex h-dvh w-full overflow-hidden">
+                <MenuLateral />
 
-            <main className="papel-pautado flex min-w-0 flex-1 flex-col bg-papel">{children}</main>
-          </div>
+                <main className="papel-pautado flex min-w-0 flex-1 flex-col bg-papel">{children}</main>
+              </div>
+            </ProvedorDeUsuario>
+          ) : (
+            // sem usuário (tela de login, ou cookie velho): tela cheia, sem menu.
+            // Fora do /login o IrParaLogin leva pra lá; o proxy cuida de quem nem tem cookie.
+            <>
+              <IrParaLogin />
+              {children}
+            </>
+          )}
         </ProvedorDeAparencia>
       </body>
     </html>

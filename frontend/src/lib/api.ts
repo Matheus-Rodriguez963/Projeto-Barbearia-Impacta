@@ -22,6 +22,7 @@ import type {
   ResumoDoMes,
   Servico,
   Situacao,
+  UsuarioLogado,
 } from "./tipos";
 
 export const URL_DA_API = process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000";
@@ -63,6 +64,7 @@ async function requisitar<T>(caminho: string, opcoes: RequestInit = {}): Promise
       // precisa montar o Content-Type (ele coloca o "boundary" que separa as partes)
       headers: opcoes.body instanceof FormData ? {} : { "Content-Type": "application/json" },
       cache: "no-store", // cadastro tem que aparecer na hora, sem cache
+      credentials: "include", // manda o cookie da sessão (o site e a API estão em portas diferentes)
       ...opcoes,
     });
   } catch {
@@ -75,6 +77,17 @@ async function requisitar<T>(caminho: string, opcoes: RequestInit = {}): Promise
   }
 
   const conteudo = await resposta.json().catch(() => ({}));
+
+  // sessão vencida (ou acesso bloqueado no meio do uso): volta pra tela de login.
+  // O 401 do próprio login é só "senha errada", e a tela de login não se redireciona.
+  if (
+    resposta.status === 401 &&
+    typeof window !== "undefined" &&
+    caminho !== "/api/login" &&
+    window.location.pathname !== "/login"
+  ) {
+    window.location.replace("/login");
+  }
 
   if (!resposta.ok) {
     throw new ErroDaApi(
@@ -277,4 +290,19 @@ export function enviarLogo(logo: Blob) {
 
 export function removerLogo() {
   return requisitar<Aparencia>("/api/aparencia/logo", { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------- login
+
+export function entrar(login: string, senha: string) {
+  return requisitar<UsuarioLogado>("/api/login", { method: "POST", body: JSON.stringify({ login, senha }) });
+}
+
+export function sair() {
+  return requisitar<void>("/api/logout", { method: "POST" });
+}
+
+/** Quem está logado agora; dá 401 (ErroDaApi) se não tem sessão válida. */
+export function pegarEu() {
+  return requisitar<UsuarioLogado>("/api/eu");
 }

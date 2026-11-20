@@ -293,3 +293,32 @@ export const APARENCIA_PADRAO: Aparencia = {
 export function marcaDaAparencia(aparencia: Pick<Aparencia, "linha_de_cima" | "nome">) {
   return [aparencia.linha_de_cima, aparencia.nome].filter(Boolean).join(" ");
 }
+
+// ---------------------------------------------------------------- login e acessos
+
+// os menus que o administrador pode liberar pra uma recepcionista ("Acessos" nunca é liberável)
+export type Menu = "agenda" | "clientes" | "barbeiros" | "servicos" | "historico" | "aparencia";
+
+// na ordem do menu lateral
+export const MENUS: { menu: Menu; nome: string; caminho: string }[] = [
+  { menu: "agenda", nome: "Agenda", caminho: "/agenda" },
+  { menu: "clientes", nome: "Clientes", caminho: "/clientes" },
+  { menu: "barbeiros", nome: "Barbeiros", caminho: "/barbeiros" },
+  { menu: "servicos", nome: "Serviços", caminho: "/servicos" },
+  { menu: "historico", nome: "Histórico", caminho: "/historico" },
+  { menu: "aparencia", nome: "Aparência", caminho: "/aparencia" },
+];
+
+export interface UsuarioLogado {
+  id: number;
+  login: string;
+  tipo: "admin" | "recepcionista";
+  menus: Menu[];
+  senha_padrao: boolean;
+}
+
+/** A primeira tela que a pessoa pode abrir, ou null se não tem nenhum menu liberado. */
+export function primeiroCaminho(usuario: UsuarioLogado): string | null {
+  const item = MENUS.find((m) => usuario.menus.includes(m.menu));
+  return item ? item.caminho : null;
+}
