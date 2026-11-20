@@ -11,10 +11,13 @@ import type {
   DadosDoServico,
   DiaDoMes,
   ErroDeCampo,
+  FiltroDeSituacao,
   GradeDoDia,
   ListaDeBarbeiros,
   ListaDeClientes,
+  ListaDeHistorico,
   ListaDeServicos,
+  ResumoDoMes,
   Servico,
   Situacao,
 } from "./tipos";
@@ -216,4 +219,35 @@ export function mudarSituacao(id: number, situacao: Exclude<Situacao, "agendado"
 /** Quanto cada dia do mês está ocupado, pras barrinhas do calendário. */
 export function ocupacaoDoMes(ano: number, mes: number) {
   return requisitar<DiaDoMes[]>(`/api/agendamentos/ocupacao?ano=${ano}&mes=${mes}`);
+}
+
+// ---------------------------------------------------------------- histórico
+
+export interface FiltrosDoHistorico {
+  barbeiroId?: number;
+  clienteId?: number;
+  situacao?: FiltroDeSituacao;
+}
+
+/** Os atendimentos de um mês, do mais recente pro mais antigo. */
+export function listarHistorico(ano: number, mes: number, filtros: FiltrosDoHistorico = {}, pagina = 1, tamanho = 20) {
+  const parametros = new URLSearchParams({
+    ano: String(ano),
+    mes: String(mes),
+    pagina: String(pagina),
+    tamanho: String(tamanho),
+  });
+  if (filtros.barbeiroId !== undefined) parametros.set("barbeiro_id", String(filtros.barbeiroId));
+  if (filtros.clienteId !== undefined) parametros.set("cliente_id", String(filtros.clienteId));
+  if (filtros.situacao) parametros.set("situacao", filtros.situacao);
+
+  return requisitar<ListaDeHistorico>(`/api/historico?${parametros}`);
+}
+
+/** Os números do mês: atendimentos, faturamento, ranking de serviços e duplas mais frequentes. */
+export function resumoDoMes(ano: number, mes: number, barbeiroId?: number) {
+  const parametros = new URLSearchParams({ ano: String(ano), mes: String(mes) });
+  if (barbeiroId !== undefined) parametros.set("barbeiro_id", String(barbeiroId));
+
+  return requisitar<ResumoDoMes>(`/api/historico/resumo?${parametros}`);
 }
