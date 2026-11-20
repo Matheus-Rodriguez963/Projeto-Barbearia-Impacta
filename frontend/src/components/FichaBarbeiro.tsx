@@ -22,7 +22,7 @@ interface Props {
 export default function FichaBarbeiro(props: Props) {
   const { nomeExibido, desde, especialidades, diasTrabalhados, cor, foto, ativo, onMudarAtivo } = props;
 
-  const faixa = CORES_DA_AGENDA.find((opcao) => opcao.chave === cor)?.fundo ?? "bg-terracota";
+  const faixa = CORES_DA_AGENDA.find((opcao) => opcao.chave === cor)?.fundo ?? "bg-barbeiro-terracota";
 
   return (
     <aside className="flex w-full shrink-0 flex-col gap-6 overflow-auto border-t border-mogno/15 bg-papel-claro/50 px-7 py-8 lg:w-82.5 lg:border-t-0 lg:border-l">

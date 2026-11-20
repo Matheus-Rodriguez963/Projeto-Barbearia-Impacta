@@ -1,7 +1,12 @@
-/* Aparência: os outros três temas, além do Clássico.
+/* Aparência: os 4 temas.
 
    O Clássico é o @theme do globals.css (o padrão, sem data-tema nenhum). Aqui cada tema
    só troca o valor das mesmas variáveis, então nenhum componente muda de classe.
+
+   Todo bloco define a MESMA lista completa de variáveis. Variável CSS é herdada, então
+   um tema dentro de outro (a prévia de um tema dentro da tela que já usa outro) só fica
+   certo se não depender de nada de fora. Por isso o Clássico também tem bloco aqui,
+   repetindo os valores do @theme. Quem criar variável nova de tema põe nos quatro.
 
    O seletor é [data-tema="..."] em qualquer elemento, não só no <html>: assim dá pra
    mostrar um tema só dentro de uma caixinha de prévia. E ganha do @theme mesmo tendo a
@@ -13,6 +18,42 @@
 
    Contraste: todo texto fica com pelo menos 4,5:1 sobre o papel. Por isso alguns valores
    saíram um pouco diferentes da tabela da prévia (anotado do lado). */
+
+/* Clássico: exatamente os valores do @theme do globals.css */
+[data-tema="classico"] {
+  --color-mogno-escuro: #38130a;
+  --color-mogno: #4a1b10;
+  --color-mogno-claro: #5e2312;
+  --color-terracota: #7b2e17;
+  --color-terracota-claro: #95391d;
+  --color-latao: #c9a227;
+  --color-latao-claro: #e0be6a;
+  --color-oliva: #5a6236;
+  --color-papel: #f2eadc;
+  --color-papel-claro: #fffdf7;
+  --color-tinta: #3a1409;
+  --color-tinta-forte: #2e1207;
+  --color-tinta-media: #7c6752;
+  --color-tinta-fraca: #8b775f;
+  --color-rotulo: #8a6a4f;
+  --color-creme: #f6ead2;
+  --color-fundo: #17110e;
+
+  --color-tinta-amena: #6b563f;
+  --color-tinta-apagada: #b49b80;
+  --color-tinta-sumida: #c4b39c;
+  --color-tinta-riscada: #bba88f;
+  --color-rotulo-secao: #9a5a2e;
+  --color-papel-leve: #fbf7ef;
+  --color-papel-medio: #f5eee2;
+  --color-papel-escuro: #ede3d0;
+  --color-papel-sombra: #e4d9c6;
+  --color-terracota-palido: #f4e2d7;
+  --color-moldura-brilho: #f2dca0;
+  --color-moldura-luz: #e6c77e;
+  --color-moldura-meio: #a87f2c;
+  --color-moldura-sombra: #8e6822;
+}
 
 /* Preto e ouro */
 [data-tema="preto"] {
@@ -87,7 +128,7 @@
   --color-moldura-sombra: #5b667a;
 }
 
-/* Verde inglês (o latão é o mesmo do Clássico, então a moldura também fica igual) */
+/* Verde inglês (o latão é o mesmo do Clássico, então a moldura repete a do Clássico) */
 [data-tema="verde"] {
   --color-mogno-escuro: #152a20;
   --color-mogno: #1f3a2d;
@@ -117,4 +158,8 @@
   --color-papel-escuro: #e8e3d4;
   --color-papel-sombra: #ddd8c7;
   --color-terracota-palido: #e2ebe4;
+  --color-moldura-brilho: #f2dca0;
+  --color-moldura-luz: #e6c77e;
+  --color-moldura-meio: #a87f2c;
+  --color-moldura-sombra: #8e6822;
 }
