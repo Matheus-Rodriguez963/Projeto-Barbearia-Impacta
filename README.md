@@ -1,15 +1,16 @@
 # Barbearia Dom Alfredo — Sistema de Gestão
 
-Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 5: aparência
-(white label)**, somando com a Etapa 1 (cadastro de clientes), a Etapa 2 (cadastro de
-barbeiros), a Etapa 3 (serviços e agendamento) e a Etapa 4 (histórico de atendimentos) — todas completas com front-end, back-end, banco de dados e testes automatizados.
+Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 6: login e acessos**,
+somando com a Etapa 1 (cadastro de clientes), a Etapa 2 (cadastro de barbeiros), a Etapa 3
+(serviços e agendamento), a Etapa 4 (histórico de atendimentos) e a Etapa 5 (aparência, white
+label) — todas completas com front-end, back-end, banco de dados e testes automatizados.
 
 O sistema simula o balcão de uma barbearia: a recepcionista cadastra o cliente perguntando
 primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser
 completado depois.
 
 **Next.js 16 + TypeScript + Tailwind 4** no front · **FastAPI + SQLAlchemy 2** no back ·
-**PostgreSQL 16** no banco · **152 testes** no pytest
+**PostgreSQL 16** no banco · **187 testes** no pytest
 
 ---
 
@@ -73,6 +74,16 @@ menu ao lado enquanto se mexe, e só vale depois de clicar em Salvar:
 
 ![Aparência](docs/imagens/aparencia.jpg)
 
+**Login** — o sistema agora só abre depois de entrar com login e senha:
+
+![Login](docs/imagens/login.jpg)
+
+**Acessos** — só o administrador vê esta tela. Cria a recepcionista, marca os menus que ela
+pode abrir e, quando precisar, recusa o acesso ou define uma senha nova pra ela. O aviso no
+alto some depois que a senha padrão é trocada:
+
+![Acessos](docs/imagens/acessos.jpg)
+
 ---
 
 ## Índice
@@ -97,7 +108,8 @@ menu ao lado enquanto se mexe, e só vale depois de clicar em Salvar:
 ## Rodando em 3 passos
 
 Precisa ter **Docker**, **Python 3.11+** e **Node 18+** na máquina. Se faltar algum,
-veja [O que precisa ter instalado](#o-que-precisa-ter-instalado).
+veja [O que precisa ter instalado](#o-que-precisa-ter-instalado). Depois de abrir o sistema,
+entre com **`admin`** e senha **`123`** (e troque a senha, veja a [Etapa 6](#etapa-6--login-e-acessos)).
 
 ### 1. Instalar tudo (um comando só)
 
@@ -132,6 +144,8 @@ Precisa de **dois terminais abertos ao mesmo tempo**.
 
 **http://localhost:3020**
 
+A primeira tela é o login. O usuário que já vem criado é **`admin`**, com a senha **`123`**.
+
 > **Por que a 3020 e não a 3000 (o padrão do Next)?** Na minha máquina a 3000 e a 3010 já
 > estavam ocupadas por outros projetos, então fixei a 3020 no `package.json`. Se quiser
 > trocar, veja [A porta 3020 já está em uso](#a-porta-3020-já-está-em-uso).
@@ -144,10 +158,80 @@ Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as f
 
 | Camada | Entrega |
 |---|---|
-| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem com busca, edição e exclusão. Agenda do dia, marcar, remarcar, concluir, falta e cancelamento. Histórico do mês com ranking de serviços. Aparência: nome, logo e 4 temas de cor, com prévia ao vivo |
-| **Back-end** | API REST com clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (7 rotas), histórico (2 rotas), aparência (5 rotas, com a logo), validações e tratamento de erros |
-| **Banco** | Tabelas `clientes`, `barbeiros`, `horarios_barbeiro`, `servicos`, `agendamentos`, `agendamento_servicos` e `aparencia` criadas pelo SQLAlchemy |
-| **Testes** | 152 testes no pytest cobrindo as validações, todas as rotas da API, as regras da agenda, as contas do histórico e a aparência |
+| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem com busca, edição e exclusão. Agenda do dia, marcar, remarcar, concluir, falta e cancelamento. Histórico do mês com ranking de serviços. Aparência: nome, logo e 4 temas de cor, com prévia ao vivo. Login, troca de senha e a tela de Acessos pro administrador cuidar das recepcionistas |
+| **Back-end** | API REST com clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (7 rotas), histórico (2 rotas), aparência (5 rotas, com a logo), login (4 rotas) e acessos (4 rotas), validações e tratamento de erros. Todas as rotas exigem login, menos o próprio login, `/`, `/docs` e a leitura da aparência |
+| **Banco** | Tabelas `clientes`, `barbeiros`, `horarios_barbeiro`, `servicos`, `agendamentos`, `agendamento_servicos`, `aparencia`, `usuarios` e `sessoes` criadas pelo SQLAlchemy |
+| **Testes** | 187 testes no pytest cobrindo as validações, todas as rotas da API, as regras da agenda, as contas do histórico, a aparência e o login com as permissões |
+
+### Etapa 6 — login e acessos
+
+O sistema agora **só abre depois do login**. Antes disso, qualquer pessoa que chegasse no endereço
+enxergava a agenda e os clientes da barbearia. Agora tem o **administrador**, que vê tudo, e as
+**recepcionistas**, que veem só os menus que o administrador liberou pra cada uma.
+
+**Primeiro acesso**
+
+- Na primeira vez que a API sobe, se não existir nenhum administrador, ela cria o usuário
+  **`admin`** com a senha **`123`**. Como essa senha é conhecida, a tela de Acessos mostra um aviso
+  ("Você ainda está com a senha padrão") até ela ser trocada. **Troque logo no primeiro acesso**,
+  em "Trocar senha" no rodapé do menu.
+- O `admin` entra em tudo, e a tela **Acessos** é só dele.
+
+**O que a tela mostra**
+
+- **Login** (`/login`): login e senha. Errou, aparece "Login ou senha incorretos." (a mesma
+  mensagem se o login não existe, pra não revelar quem tem conta). Acesso recusado diz pra falar
+  com o administrador.
+- **Menu por acesso:** o menu lateral só mostra o que a pessoa pode abrir, e no rodapé ficam quem
+  está logado, **Trocar senha** e **Sair**. Digitar o endereço de uma tela sem permissão leva de
+  volta pra primeira que ela pode abrir.
+- **Acessos** (`/acessos`, só do admin): criar recepcionista (login, senha e os menus), marcar ou
+  desmarcar os menus de cada uma (vale na hora), **Recusar** (bloqueia, com uma confirmação antes)
+  e **Aprovar** (libera de novo) e **Trocar senha** (o admin define uma nova pra ela, sem precisar
+  da antiga).
+- **Trocar senha** (`/senha`): pede a senha atual e a nova duas vezes.
+
+**As regras**
+
+- **Menus que dá pra liberar:** agenda, clientes, barbeiros, serviços, histórico e aparência.
+  **Acessos nunca é liberável**, é sempre e só do admin.
+- **Login:** de 3 a 30 caracteres, só letras minúsculas, números, ponto e sublinhado
+  (`a-z 0-9 . _`). Maiúscula é convertida pra minúscula, então `Maria` e `maria` são a mesma pessoa.
+  Login repetido dá 409 ("Já existe um usuário com esse login.").
+- **Senha nova:** de 4 a 72 caracteres.
+- **Quem lê e quem grava:** pra **ler** clientes, barbeiros (com a foto) e serviços, basta estar
+  logado, porque a tela de marcar horário precisa desses dados. Pra **gravar**, a pessoa precisa
+  do menu correspondente. Agendamentos pedem `agenda` e o histórico pede `historico`. Na
+  aparência, ver o nome, o tema e a logo é aberto (a tela de login usa), e gravar pede
+  `aparencia`. Só `/`, `/docs` e o login ficam abertos de verdade.
+- **Sem permissão:** sem sessão a API responde `401` ("Faça login para continuar."); com sessão
+  mas sem o menu, `403` ("Você não tem acesso a este menu.").
+- **Bloquear derruba a sessão:** quando o admin recusa uma recepcionista, ou define uma senha nova
+  pra ela, as sessões abertas dela são apagadas. Na próxima ação ela já cai pro login.
+- A sessão dura **12 horas**.
+
+**Como foi feito**
+
+- **Tabelas novas, `usuarios` e `sessoes`** (ver [O banco de dados](#o-banco-de-dados)).
+- **Sessão no banco + cookie httpOnly:** ao entrar, a API sorteia um token, guarda só o **hash
+  (sha256)** dele na tabela `sessoes` e manda o token num cookie `sessao` com `httpOnly` e
+  `SameSite=Lax`. O JavaScript da página não consegue ler o cookie, e quem copiar o banco não
+  consegue usar as sessões. Escolhi isso, e não um JWT, porque assim dá pra **derrubar uma sessão
+  na hora** (bloquear, trocar a senha, sair), coisa que um JWT sem estado não faz.
+- **Senha com `scrypt` do próprio Python (`hashlib`):** sal aleatório de 16 bytes por senha,
+  guardada como `scrypt$<sal>$<hash>` e conferida com `hmac.compare_digest`. **Nenhuma dependência
+  nova** no `requirements.txt`.
+- **Login inexistente gasta o mesmo tempo que senha errada:** quando o login não existe, a API
+  confere a senha contra um hash de mentira, pra ninguém descobrir quais logins existem medindo o
+  tempo da resposta.
+- **Back-end:** `models/usuario.py`, `schemas/usuario.py`, `crud/usuarios.py`, `core/senha.py`
+  (o scrypt) e `core/acesso.py` (a lista de menus e as dependências `usuario_logado`,
+  `exigir_menu` e `exigir_admin`, que cada roteador usa pra se proteger). Dois roteadores novos:
+  `routers/acesso.py` (o login) e `routers/usuarios.py` (a gestão, só do admin).
+- **Front-end:** as páginas `app/login`, `app/senha` e `app/acessos`, e o menu lateral que se
+  monta conforme o que o usuário pode abrir. Uma resposta `401` leva pro login.
+- **Testes:** 34 testes novos (18 em `tests/test_acesso.py` e 16 em `tests/test_usuarios.py`); a
+  suíte inteira tem 187.
 
 ### Etapa 5 — aparência (white label)
 
@@ -212,7 +296,7 @@ dá pra ler.
 - **Front-end:** a página `app/aparencia/page.tsx`, os componentes `EscolherTema.tsx` (os
   cartões) e `AparenciaContexto.tsx` (guarda a aparência e a prévia, pro menu e as telas
   reagirem na hora). O `layout.tsx` lê a aparência no servidor e põe o tema no `<html>`.
-- **Testes:** 11 testes novos em `tests/test_aparencia.py` (a suíte inteira tem 152).
+- **Testes:** 11 testes novos em `tests/test_aparencia.py` (a suíte inteira tinha 152 nessa etapa).
 
 ### Etapa 4 — histórico de atendimentos
 
@@ -538,11 +622,15 @@ npm run dev
 | Serviços | http://localhost:3020/servicos |
 | **Histórico do mês** | http://localhost:3020/historico |
 | **Aparência** | http://localhost:3020/aparencia |
+| **Login** | http://localhost:3020/login |
+| Acessos (só o admin) | http://localhost:3020/acessos |
+| Trocar a minha senha | http://localhost:3020/senha |
 | API | http://localhost:8000 |
 | **Documentação da API (Swagger)** | http://localhost:8000/docs |
 
-> O Swagger em `/docs` é gerado sozinho pelo FastAPI: dá pra testar todas as rotas
-> por ali, sem precisar do front.
+> O Swagger em `/docs` é gerado sozinho pelo FastAPI: dá pra testar as rotas por ali, sem
+> precisar do front. Como agora quase tudo exige login, faça primeiro o `POST /api/login` por
+> lá (o navegador guarda o cookie e as outras rotas passam a funcionar).
 
 ---
 
@@ -560,24 +648,28 @@ Ou pelo atalho: `bash scripts/rodar-testes.sh` (Linux/macOS) ou
 Saída esperada:
 
 ```
-tests/test_agendamento.py ................................          [ 21%]
-tests/test_aparencia.py ...........                                 [ 28%]
-tests/test_cadastro_barbeiro.py .....................................  [ 53%]
-tests/test_cadastro_cliente.py ..........................           [ 70%]
-tests/test_cadastro_servico.py .............                        [ 78%]
-tests/test_historico.py ..............                             [ 87%]
-tests/test_validadores.py ...................                      [100%]
+tests/test_acesso.py ..................                                  [  9%]
+tests/test_agendamento.py ................................               [ 26%]
+tests/test_aparencia.py ............                                     [ 33%]
+tests/test_cadastro_barbeiro.py .....................................    [ 52%]
+tests/test_cadastro_cliente.py ..........................                [ 66%]
+tests/test_cadastro_servico.py .............                             [ 73%]
+tests/test_historico.py ..............                                   [ 81%]
+tests/test_usuarios.py ................                                  [ 89%]
+tests/test_validadores.py ...................                            [100%]
 
-======================== 152 passed in 44.49s ========================
+======================= 187 passed in 68.83s (0:01:08) =======================
 ```
 
 Para ver o nome de cada teste, `pytest -v`.
 
-### O que os 152 testes cobrem
+### O que os 187 testes cobrem
 
 | Arquivo | Testes | O que verifica |
 |---|---|---|
-| `test_aparencia.py` | 11 | As 5 rotas da aparência: o padrão na primeira leitura, editar só o que foi enviado, a linha de cima vazia, tema inválido e nome vazio ou longo (422), e enviar, ver e tirar a logo (SVG recusado com 415, mais de 2 MB com 413 e arquivo vazio com 422) |
+| `test_acesso.py` | 18 | O login: senha certa e errada, maiúscula e espaço no login, login inexistente, acesso bloqueado (403), cookie inválido e sessão vencida (401), sair, trocar a própria senha e o scrypt (o token e a senha não ficam no banco em texto) |
+| `test_usuarios.py` | 16 | A gestão das recepcionistas pelo admin e as permissões: criar, login repetido (409), menu inválido, o 401 sem login e o 403 sem o menu em cada área, bloquear derrubando a sessão, o admin que não se edita pela tela, senha nova e menus que valem na hora |
+| `test_aparencia.py` | 12 | As 5 rotas da aparência: o padrão na primeira leitura, editar só o que foi enviado, a linha de cima vazia, tema inválido e nome vazio ou longo (422), e enviar, ver e tirar a logo (SVG recusado com 415, mais de 2 MB com 413 e arquivo vazio com 422) |
 | `test_historico.py` | 14 | As 2 rotas do histórico: só o concluído entra na conta, o preço combinado na marcação, os filtros, o mês sem atendimento, o ranking de serviços e os pares cliente e barbeiro |
 | `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
 | `test_cadastro_cliente.py` | 26 | As 6 rotas da API, os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404) |
@@ -605,10 +697,16 @@ Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar b
 - No histórico, **falta e cancelado não entram no faturamento** e o valor é o combinado na
   marcação, mesmo se o serviço mudou de preço depois.
 - Na aparência, **SVG é recusado** como logo (415) e o nome vazio ou com mais de 40 letras dá 422.
+- No login, **bloquear uma recepcionista derruba a sessão dela na hora**, e o login que não
+  existe confere a senha uma vez só, igual ao que existe.
 
 Os testes da agenda **travam o relógio** (com o `monkeypatch` do pytest) numa segunda-feira de
 2029. Sem isso, "esse horário já passou" dependeria do dia em que o teste roda, e um teste
 que passa hoje quebraria semana que vem.
+
+Os testes usam um `scrypt` mais barato (só neles), senão cada login deixaria a suíte bem mais
+lenta; em produção vale o custo normal. Um teste confere que os parâmetros de produção continuam
+os combinados.
 
 Os testes usam o banco `barbearia_teste`, separado do banco de verdade — nada do que
 está cadastrado é apagado. Se esse banco não existir, os testes rodam sozinhos em
@@ -713,6 +811,30 @@ SVG pode carregar script, então só JPG, PNG e WEBP, como na foto do barbeiro. 
 logo pra caber em 600×200 sem cortar e manda em PNG, porque logo costuma ser larga e ter fundo
 transparente (o que o recorte quadrado e o JPEG da foto do barbeiro estragariam).
 
+**O login fica no banco, num cookie httpOnly.**
+A sessão é uma linha na tabela `sessoes` e o navegador só guarda um token num cookie que o
+JavaScript não lê. Assim dá pra derrubar uma sessão na hora, quando o admin bloqueia alguém ou
+muda a senha dela. Num JWT, que vale até vencer, isso não seria possível. No banco fica só o
+sha256 do token.
+
+**A senha usa o `scrypt` que já vem no Python.**
+Não precisei de `bcrypt` nem de dependência nova: `hashlib.scrypt` com sal aleatório por senha,
+e a conferência com `hmac.compare_digest`. É um hash feito de propósito pra ser lento, e o
+`requirements.txt` continua igual.
+
+**Bloquear derruba a sessão.**
+Quando o admin recusa uma recepcionista ou define uma senha nova pra ela, as sessões abertas dela
+são apagadas. Se só marcasse "bloqueada", ela continuaria usando o sistema até o cookie vencer.
+
+**A API confere a permissão, não só o menu.**
+Esconder o botão no menu é só conforto. Cada rota confere o login e o menu do usuário, então
+abrir o endereço na mão ou chamar a API direto não passa. Ler clientes, barbeiros e serviços é
+liberado pra qualquer logada, porque a tela de marcar horário usa os três; gravar pede o menu.
+
+**"Acessos" não está na lista de menus liberáveis.**
+Se estivesse, o admin poderia liberar a tela de acessos pra uma recepcionista, e ela se daria
+os outros menus. Por isso é a única tela amarrada ao tipo `admin`.
+
 
 ---
 
@@ -736,13 +858,16 @@ projeto-faculdade/
 │   │   │   ├── config.py        # lê o .env
 │   │   │   ├── database.py      # conexão com o PostgreSQL
 │   │   │   ├── validadores.py   # regras de CPF e telefone
-│   │   │   └── erros.py
+│   │   │   ├── erros.py
+│   │   │   ├── senha.py         # etapa 6: scrypt (guardar e conferir a senha)
+│   │   │   └── acesso.py        # etapa 6: menus e as dependências que protegem as rotas
 │   │   ├── models/              # as tabelas do banco (SQLAlchemy)
 │   │   │   ├── cliente.py
 │   │   │   ├── barbeiro.py      # barbeiros + horarios_barbeiro
 │   │   │   ├── servico.py       # etapa 3
 │   │   │   ├── agendamento.py   # agendamentos + agendamento_servicos
-│   │   │   └── aparencia.py     # etapa 5: nome, tema e logo (uma linha só)
+│   │   │   ├── aparencia.py     # etapa 5: nome, tema e logo (uma linha só)
+│   │   │   └── usuario.py       # etapa 6: usuarios + sessoes
 │   │   ├── schemas/             # o que entra e sai da API (Pydantic)
 │   │   │   ├── regras.py        # validações que cliente e barbeiro têm iguais
 │   │   │   ├── cliente.py
@@ -750,7 +875,8 @@ projeto-faculdade/
 │   │   │   ├── servico.py
 │   │   │   ├── agendamento.py
 │   │   │   ├── historico.py     # etapa 4
-│   │   │   └── aparencia.py     # etapa 5
+│   │   │   ├── aparencia.py     # etapa 5
+│   │   │   └── usuario.py       # etapa 6
 │   │   ├── crud/                # as consultas no banco
 │   │   │   ├── comum.py         # duplicados, busca e paginação dos dois
 │   │   │   ├── cliente.py
@@ -758,14 +884,17 @@ projeto-faculdade/
 │   │   │   ├── servico.py
 │   │   │   ├── agendamento.py   # todas as regras da agenda
 │   │   │   ├── historico.py     # as contas do histórico (etapa 4)
-│   │   │   └── aparencia.py     # a linha única da aparência (etapa 5)
+│   │   │   ├── aparencia.py     # a linha única da aparência (etapa 5)
+│   │   │   └── usuarios.py      # login, sessões e recepcionistas (etapa 6)
 │   │   └── routers/             # as rotas HTTP
 │   │       ├── clientes.py
 │   │       ├── barbeiros.py
 │   │       ├── servicos.py
 │   │       ├── agendamentos.py
 │   │       ├── historico.py
-│   │       └── aparencia.py     # etapa 5
+│   │       ├── aparencia.py     # etapa 5
+│   │       ├── acesso.py        # etapa 6: entrar, sair, quem sou eu, trocar a minha senha
+│   │       └── usuarios.py      # etapa 6: o admin cuida das recepcionistas
 │   └── tests/                   # os testes do pytest
 │
 └── frontend/
@@ -786,6 +915,9 @@ projeto-faculdade/
         │   ├── servicos/                     # etapa 3: lista, novo e edição
         │   ├── historico/page.tsx            # etapa 4: o histórico do mês
         │   ├── aparencia/page.tsx            # etapa 5: nome, logo e tema
+        │   ├── login/page.tsx                # etapa 6: entrar
+        │   ├── senha/page.tsx                # etapa 6: trocar a minha senha
+        │   ├── acessos/page.tsx              # etapa 6: recepcionistas e menus (só o admin)
         │   └── agenda/
         │       ├── page.tsx                  # a agenda do dia
         │       ├── novo/page.tsx             # marcar horário
@@ -926,6 +1058,29 @@ Tabela **`aparencia`** (etapa 5) — **uma linha só** (id 1), criada com os pad
 | `logo_atualizada_em` | data e hora | quando a logo mudou — vai no endereço (`?v=`) pro navegador não mostrar a antiga |
 | `atualizado_em` | data e hora | preenchido quando a aparência é editada |
 
+Tabela **`usuarios`** (etapa 6) — quem pode entrar:
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária |
+| `login` | texto (30) | **obrigatório e único**, sempre em minúsculas |
+| `senha_hash` | texto (200) | `scrypt$<sal>$<hash>`: a senha em si nunca é guardada |
+| `tipo` | texto (20) | `admin` ou `recepcionista` |
+| `menus` | JSON | os menus liberados pra recepcionista (o admin vê todos sem precisar listar) |
+| `ativo` | sim/não | falso = acesso recusado ("Recusar" na tela) |
+| `senha_padrao` | sim/não | verdadeiro enquanto a senha é a que o sistema criou, pro aviso de trocar |
+| `criado_em` | data e hora | preenchido pelo banco |
+
+Tabela **`sessoes`** — os logins abertos:
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária |
+| `usuario_id` | inteiro | chave estrangeira para `usuarios` (apaga junto com o usuário) |
+| `token_hash` | texto (64) | **único**: só o sha256 do token, o token de verdade fica no cookie |
+| `criada_em` | data e hora | preenchido pelo banco |
+| `expira_em` | data e hora | 12 horas depois de entrar |
+
 O **histórico** (Etapa 4) não tem tabela própria: ele lê essas duas tabelas. É por isso que o
 preço fica copiado em `agendamento_servicos`, porque assim o relatório de um mês antigo continua
 com os valores daquele mês.
@@ -1001,10 +1156,34 @@ Base: `http://localhost:8000`
 | `GET` | `/api/aparencia/logo` | Devolve a imagem (404 se não tem) — é o endereço que vai na tela |
 | `DELETE` | `/api/aparencia/logo` | Tira a logo |
 
+| Método | Rota | O que faz |
+|---|---|---|
+| `POST` | `/api/login` | Entra (`login` e `senha`), devolve quem é, com os menus, e põe o cookie `sessao`. 401 se errou, 403 se está bloqueada |
+| `POST` | `/api/logout` | Sai e apaga a sessão |
+| `GET` | `/api/eu` | Quem está logado, o tipo, os menus que pode abrir e se ainda tem a senha padrão |
+| `PUT` | `/api/eu/senha` | Troca a minha senha (`senha_atual` e `senha_nova`); 422 no campo `senha_atual` se estiver errada |
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/api/usuarios` | Lista as recepcionistas (só o admin) |
+| `POST` | `/api/usuarios` | Cria uma recepcionista (`login`, `senha` e `menus`) |
+| `PUT` | `/api/usuarios/{id}` | Muda os `menus` e/ou o `ativo` (falso bloqueia e derruba a sessão) |
+| `PUT` | `/api/usuarios/{id}/senha` | Define uma senha nova pra ela (`senha_nova`) e derruba a sessão |
+
+Quase todas as rotas dos blocos anteriores exigem login. Com o `curl`, guarde o cookie:
+
+```bash
+curl -c cookie.txt -X POST http://localhost:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"login": "admin", "senha": "123"}'
+```
+
+e mande ele nas outras chamadas com `-b cookie.txt`.
+
 ### Exemplo de cadastro
 
 ```bash
-curl -X POST http://localhost:8000/api/clientes \
+curl -b cookie.txt -X POST http://localhost:8000/api/clientes \
   -H "Content-Type: application/json" \
   -d '{
     "nome": "Pablo Miguel Dias",
@@ -1019,7 +1198,7 @@ curl -X POST http://localhost:8000/api/clientes \
 Barbeiro:
 
 ```bash
-curl -X POST http://localhost:8000/api/barbeiros \
+curl -b cookie.txt -X POST http://localhost:8000/api/barbeiros \
   -H "Content-Type: application/json" \
   -d '{
     "nome": "Sebastião Ramos",
@@ -1040,7 +1219,7 @@ curl -X POST http://localhost:8000/api/barbeiros \
 Agendamento (corte + barba às 9h; o fim e o total a API calcula):
 
 ```bash
-curl -X POST http://localhost:8000/api/agendamentos \
+curl -b cookie.txt -X POST http://localhost:8000/api/agendamentos \
   -H "Content-Type: application/json" \
   -d '{"cliente_id": 1, "barbeiro_id": 2, "servicos": [1, 3], "data": "2026-11-03", "inicio": "09:00"}'
 ```
@@ -1048,7 +1227,7 @@ curl -X POST http://localhost:8000/api/agendamentos \
 Resumo do histórico de novembro (com `&barbeiro_id=2`, as contas seriam só desse barbeiro):
 
 ```bash
-curl "http://localhost:8000/api/historico/resumo?ano=2026&mes=11"
+curl -b cookie.txt "http://localhost:8000/api/historico/resumo?ano=2026&mes=11"
 ```
 
 ```json
@@ -1075,13 +1254,13 @@ curl "http://localhost:8000/api/historico/resumo?ano=2026&mes=11"
 Lista dos atendimentos de novembro que viraram falta, 10 por página:
 
 ```bash
-curl "http://localhost:8000/api/historico?ano=2026&mes=11&situacao=faltou&tamanho=10"
+curl -b cookie.txt "http://localhost:8000/api/historico?ano=2026&mes=11&situacao=faltou&tamanho=10"
 ```
 
 Trocar o nome e o tema da barbearia:
 
 ```bash
-curl -X PUT http://localhost:8000/api/aparencia \
+curl -b cookie.txt -X PUT http://localhost:8000/api/aparencia \
   -H "Content-Type: application/json" \
   -d '{"nome": "Impacta", "tema": "marinho"}'
 ```
@@ -1093,9 +1272,11 @@ curl -X PUT http://localhost:8000/api/aparencia \
 | `201` | Cliente cadastrado |
 | `200` | Consulta ou edição deu certo |
 | `204` | Cliente excluído |
+| `401` | Sem login (ou a sessão acabou), ou login e senha errados |
+| `403` | Está logada, mas sem o menu daquela área (ou o acesso está bloqueado) |
 | `404` | Não existe cliente com esse id/telefone |
 | `413` / `415` | A logo passou de 2 MB / não é JPG, PNG ou WEBP |
-| `409` | Telefone, CPF ou e-mail já cadastrado em outra ficha; horário que a agenda recusou (choque, folga, fora do expediente); ou exclusão de algo que tem agendamento |
+| `409` | Telefone, CPF ou e-mail já cadastrado em outra ficha; login de usuário repetido; horário que a agenda recusou (choque, folga, fora do expediente); ou exclusão de algo que tem agendamento |
 | `422` | Algum campo do formulário está inválido |
 
 O erro `422` vem com o campo e o motivo, para o front conseguir marcar o campo certo:
@@ -1147,6 +1328,15 @@ Na aparência:
 | **Nome** | Obrigatório, de 1 a 40 letras |
 | **Tema** | Só os 4 da tela: classico, preto, marinho ou verde |
 | **Logo** | Opcional. JPG, PNG ou WEBP de até 2 MB, sem SVG (o navegador já manda reduzida pra 600×200) |
+
+No login e nos acessos:
+
+| Campo | Regra |
+|---|---|
+| **Login** | De 3 a 30 caracteres, só `a-z 0-9 . _`. Maiúscula vira minúscula, e não pode repetir |
+| **Senha nova** | De 4 a 72 caracteres |
+| **Menus** | Só agenda, clientes, barbeiros, servicos, historico e aparencia. `acessos` nunca |
+| **Recepcionista** | O admin não é mexido por essas rotas (nem bloqueado, nem trocado de senha por elas) |
 
 E na agenda, conferido toda vez que se marca ou remarca:
 
@@ -1206,6 +1396,15 @@ como está nos comandos acima.
 **Cadastrei um cliente e ele não aparece na lista**
 A busca pode estar preenchida — limpe o campo de busca. Se continuar, confira no banco
 com `docker exec -it barbearia-postgres psql -U barbearia -d barbearia -c "select * from clientes;"`.
+
+**Esqueci a senha do admin**
+Não tem "esqueci minha senha" por e-mail. Apague o admin no banco e reinicie a API, que cria o
+`admin` de novo com a senha `123`:
+`docker exec -it barbearia-postgres psql -U barbearia -d barbearia -c "delete from usuarios where tipo = 'admin';"`.
+
+**Atualizei da etapa 5 e o site pede login**
+É o esperado: as tabelas `usuarios` e `sessoes` são criadas sozinhas quando a API sobe e o
+`admin` com senha `123` é cadastrado. Entre com ele. Nenhum dado das etapas anteriores é mexido.
 
 **Quero apagar tudo e começar do zero**
 
