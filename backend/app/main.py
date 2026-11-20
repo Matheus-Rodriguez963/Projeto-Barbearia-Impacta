@@ -14,8 +14,8 @@ from fastapi.responses import JSONResponse
 from app.core.config import config
 from app.core.database import Base, acrescentar_colunas_novas, engine
 from app.core.erros import RegistroDuplicado, RegistroEmUso, RegraDaAgenda
-from app.models import Agendamento, Barbeiro, Cliente, Servico  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
-from app.routers import agendamentos, barbeiros, clientes, historico, servicos
+from app.models import Agendamento, Aparencia, Barbeiro, Cliente, Servico  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
+from app.routers import agendamentos, aparencia, barbeiros, clientes, historico, servicos
 
 
 @asynccontextmanager
@@ -36,8 +36,8 @@ async def ciclo_de_vida(app: FastAPI):
 
 app = FastAPI(
     title="Barbearia Dom Alfredo — API",
-    description="Etapa 1: clientes · Etapa 2: barbeiros · Etapa 3: serviços e agendamento · Etapa 4: histórico.",
-    version="4.0.0",
+    description="Etapa 1: clientes · Etapa 2: barbeiros · Etapa 3: serviços e agendamento · Etapa 4: histórico · Etapa 5: aparência.",
+    version="5.0.0",
     lifespan=ciclo_de_vida,
 )
 
@@ -104,6 +104,7 @@ app.include_router(barbeiros.roteador)
 app.include_router(servicos.roteador)
 app.include_router(agendamentos.roteador)
 app.include_router(historico.roteador)
+app.include_router(aparencia.roteador)
 
 
 @app.get("/", tags=["Status"], summary="Só pra saber se a API está de pé")
