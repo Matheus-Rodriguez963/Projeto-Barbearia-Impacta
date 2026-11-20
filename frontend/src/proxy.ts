@@ -13,7 +13,9 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const [nomeDoHost, porta] = host.split(":");
   if (nomeDoHost === "127.0.0.1") {
-    const destino = new URL(`${pathname}${request.nextUrl.search}`, `http://localhost${porta ? `:${porta}` : ""}`);
+    // a porta vem do cabeçalho: só aceito número, pra ninguém montar um endereço de outro site com ela
+    const sufixoDaPorta = porta && /^\d+$/.test(porta) ? `:${porta}` : "";
+    const destino = new URL(`${pathname}${request.nextUrl.search}`, `http://localhost${sufixoDaPorta}`);
     // Não dá pra usar redirect (307): o Next encurta o Location pra "/agenda" quando acha que é o
     // mesmo site, e o navegador ficaria no 127.0.0.1. O cabeçalho Refresh leva pro endereço inteiro.
     return new Response(null, { status: 200, headers: { Refresh: `0; url=${destino.href}` } });
