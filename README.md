@@ -1,15 +1,15 @@
 # Barbearia Dom Alfredo — Sistema de Gestão
 
-Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 4: o histórico de
-atendimentos**, somando com a Etapa 1 (cadastro de clientes), a Etapa 2 (cadastro de
-barbeiros) e a Etapa 3 (serviços e agendamento) — todas completas com front-end, back-end, banco de dados e testes automatizados.
+Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 5: aparência
+(white label)**, somando com a Etapa 1 (cadastro de clientes), a Etapa 2 (cadastro de
+barbeiros), a Etapa 3 (serviços e agendamento) e a Etapa 4 (histórico de atendimentos) — todas completas com front-end, back-end, banco de dados e testes automatizados.
 
 O sistema simula o balcão de uma barbearia: a recepcionista cadastra o cliente perguntando
 primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser
 completado depois.
 
 **Next.js 16 + TypeScript + Tailwind 4** no front · **FastAPI + SQLAlchemy 2** no back ·
-**PostgreSQL 16** no banco · **141 testes** no pytest
+**PostgreSQL 16** no banco · **152 testes** no pytest
 
 ---
 
@@ -67,6 +67,11 @@ filtros mudam a lista e as contas juntos, e à direita aparecem os serviços mai
 clientes que sempre voltam no mesmo barbeiro:
 
 ![Histórico do mês](docs/imagens/historico-do-mes.jpg)
+
+**Aparência** — o nome, a logo e o tema de cores do sistema. O que se muda aqui já aparece no
+menu ao lado enquanto se mexe, e só vale depois de clicar em Salvar:
+
+![Aparência](docs/imagens/aparencia.jpg)
 
 ---
 
@@ -139,10 +144,75 @@ Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as f
 
 | Camada | Entrega |
 |---|---|
-| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem com busca, edição e exclusão. Agenda do dia, marcar, remarcar, concluir, falta e cancelamento. Histórico do mês com ranking de serviços |
-| **Back-end** | API REST com clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (7 rotas), histórico (2 rotas), validações e tratamento de erros |
-| **Banco** | Tabelas `clientes`, `barbeiros`, `horarios_barbeiro`, `servicos`, `agendamentos` e `agendamento_servicos` criadas pelo SQLAlchemy |
-| **Testes** | 141 testes no pytest cobrindo as validações, todas as rotas da API, as regras da agenda e as contas do histórico |
+| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem com busca, edição e exclusão. Agenda do dia, marcar, remarcar, concluir, falta e cancelamento. Histórico do mês com ranking de serviços. Aparência: nome, logo e 4 temas de cor, com prévia ao vivo |
+| **Back-end** | API REST com clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (7 rotas), histórico (2 rotas), aparência (5 rotas, com a logo), validações e tratamento de erros |
+| **Banco** | Tabelas `clientes`, `barbeiros`, `horarios_barbeiro`, `servicos`, `agendamentos`, `agendamento_servicos` e `aparencia` criadas pelo SQLAlchemy |
+| **Testes** | 152 testes no pytest cobrindo as validações, todas as rotas da API, as regras da agenda, as contas do histórico e a aparência |
+
+### Etapa 5 — aparência (white label)
+
+Tela nova no fim do menu, **Aparência** (`/aparencia`). A ideia é o sistema servir pra qualquer
+barbearia: quem instala coloca o próprio nome e a própria logo e escolhe um entre 4 temas de cor.
+Escolhi temas prontos, e não um seletor de cor livre, pra ninguém montar uma combinação que não
+dá pra ler.
+
+**O que a tela mostra**
+
+- **Nome:** a "linha de cima" (o texto pequeno, que hoje é "Barbearia") e o "nome da barbearia"
+  (hoje "Dom Alfredo"). A linha de cima é opcional e aceita até 30 letras; o nome é obrigatório,
+  de 1 a 40.
+- **Logo:** opcional. Clica na moldura, escolhe a imagem e, se quiser, tira depois. Ela aparece
+  no menu, do lado do nome.
+- **Tema:** 4 cartões, cada um com uma miniatura do menu, do papel e do botão naquelas cores:
+  **Clássico** (o padrão, mogno e latão), **Preto e ouro**, **Marinho** e **Verde inglês**.
+- **Prévia ao vivo:** clicar num tema, digitar o nome ou escolher a logo já muda o sistema
+  inteiro na tela. Só o botão **Salvar** grava; **Desfazer** ou sair da tela sem salvar volta ao
+  que estava gravado.
+
+**O que muda e o que nunca muda**
+
+- Só as **cores** mudam. As fontes (Bodoni, Oswald e Karla), o layout e os espaçamentos são
+  sempre os mesmos, e a área de trabalho é sempre clara (fundo de papel).
+- O nome aparece em três lugares: o menu, o título da aba do navegador e o cartão "A reserva"
+  da tela de marcar horário.
+- Algumas cores **não seguem o tema**, porque querem dizer uma coisa e não "a cara da casa":
+  - **sucesso:** "Cabe certinho", "Concluído", a chave ligada e o almoço continuam verdes. Senão o
+    "certo" viraria dourado no Preto e ouro e azul no Marinho;
+  - **erro:** falta e cancelado continuam no tijolo de sempre;
+  - **a linha do horário atual** da agenda continua vermelha;
+  - **a cor de cada barbeiro** na agenda. Ela identifica o barbeiro, e se mudasse com o tema ele
+    viraria outra pessoa na grade.
+
+**As regras**
+
+- A logo é JPG, PNG ou WEBP de até 2 MB. **SVG não aceito de propósito**, porque esse formato
+  pode carregar script.
+- Antes de enviar, o navegador reduz a logo pra caber em 600×200, **sem cortar e mantendo a
+  proporção**, e manda em PNG pra não perder a transparência. Logo menor que isso não é
+  ampliada.
+- A aparência fica **no banco**, então vale pra todos os computadores da barbearia. O tema é
+  aplicado no servidor antes da página ser desenhada, por isso não aparece a cor antiga piscando.
+- Se a API estiver fora do ar, o site abre mesmo assim com a aparência padrão (Clássico,
+  "Barbearia Dom Alfredo").
+
+**Como foi feito**
+
+- **Tabela nova, `aparencia`:** uma linha só (id 1), criada com os valores padrão na primeira
+  vez que alguém pergunta. A logo fica no banco, como a foto do barbeiro, e os bytes só são
+  carregados quando alguém pede a imagem.
+- **Back-end:** roteador novo `/api/aparencia` com 5 rotas (ver o nome e o tema, mudar, e enviar,
+  ver e tirar a logo), no mesmo padrão: `models/aparencia.py`, `schemas/aparencia.py`,
+  `crud/aparencia.py` e `routers/aparencia.py`. A logo usa a mesma regra de tipo e tamanho da foto
+  do barbeiro.
+- **Temas:** cada tema só redefine as mesmas variáveis de cor que já existiam, num arquivo
+  `temas.css`. Por isso nenhum componente precisou mudar de classe. As cores que estavam
+  escritas direto nos componentes viraram variáveis do tema, e as que têm significado (sucesso,
+  erro, agora e a cor do barbeiro) ganharam variáveis fixas. Conferi o contraste do texto em cada
+  tema e escureci os valores que não passavam de 4,5:1.
+- **Front-end:** a página `app/aparencia/page.tsx`, os componentes `EscolherTema.tsx` (os
+  cartões) e `AparenciaContexto.tsx` (guarda a aparência e a prévia, pro menu e as telas
+  reagirem na hora). O `layout.tsx` lê a aparência no servidor e põe o tema no `<html>`.
+- **Testes:** 11 testes novos em `tests/test_aparencia.py` (a suíte inteira tem 152).
 
 ### Etapa 4 — histórico de atendimentos
 
@@ -467,6 +537,7 @@ npm run dev
 | Marcar horário | http://localhost:3020/agenda/novo |
 | Serviços | http://localhost:3020/servicos |
 | **Histórico do mês** | http://localhost:3020/historico |
+| **Aparência** | http://localhost:3020/aparencia |
 | API | http://localhost:8000 |
 | **Documentação da API (Swagger)** | http://localhost:8000/docs |
 
@@ -489,22 +560,24 @@ Ou pelo atalho: `bash scripts/rodar-testes.sh` (Linux/macOS) ou
 Saída esperada:
 
 ```
-tests/test_agendamento.py ................................          [ 22%]
-tests/test_cadastro_barbeiro.py .....................................  [ 48%]
-tests/test_cadastro_cliente.py ..........................           [ 67%]
-tests/test_cadastro_servico.py .............                        [ 76%]
-tests/test_historico.py ..............                             [ 86%]
+tests/test_agendamento.py ................................          [ 21%]
+tests/test_aparencia.py ...........                                 [ 28%]
+tests/test_cadastro_barbeiro.py .....................................  [ 53%]
+tests/test_cadastro_cliente.py ..........................           [ 70%]
+tests/test_cadastro_servico.py .............                        [ 78%]
+tests/test_historico.py ..............                             [ 87%]
 tests/test_validadores.py ...................                      [100%]
 
-======================== 141 passed in 18.57s ========================
+======================== 152 passed in 44.49s ========================
 ```
 
 Para ver o nome de cada teste, `pytest -v`.
 
-### O que os 141 testes cobrem
+### O que os 152 testes cobrem
 
 | Arquivo | Testes | O que verifica |
 |---|---|---|
+| `test_aparencia.py` | 11 | As 5 rotas da aparência: o padrão na primeira leitura, editar só o que foi enviado, a linha de cima vazia, tema inválido e nome vazio ou longo (422), e enviar, ver e tirar a logo (SVG recusado com 415, mais de 2 MB com 413 e arquivo vazio com 422) |
 | `test_historico.py` | 14 | As 2 rotas do histórico: só o concluído entra na conta, o preço combinado na marcação, os filtros, o mês sem atendimento, o ranking de serviços e os pares cliente e barbeiro |
 | `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
 | `test_cadastro_cliente.py` | 26 | As 6 rotas da API, os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404) |
@@ -531,6 +604,7 @@ Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar b
 - A ocupação do calendário **não conta o cancelado** e diz que ninguém trabalha na segunda.
 - No histórico, **falta e cancelado não entram no faturamento** e o valor é o combinado na
   marcação, mesmo se o serviço mudou de preço depois.
+- Na aparência, **SVG é recusado** como logo (415) e o nome vazio ou com mais de 40 letras dá 422.
 
 Os testes da agenda **travam o relógio** (com o `monkeypatch` do pytest) numa segunda-feira de
 2029. Sem isso, "esse horário já passou" dependeria do dia em que o teste roda, e um teste
@@ -622,6 +696,23 @@ Faturamento, ticket médio, ranking e pares usam só o que foi concluído. Falta
 aparecem como número à parte, porque não entrou dinheiro. O valor vem do preço copiado no
 agendamento, então mudar o preço do serviço hoje não reescreve o mês passado.
 
+**A aparência fica no banco, e o tema é aplicado no servidor.**
+Guardada no navegador (`localStorage`), cada computador teria uma cara e a logo nem caberia. No
+banco vale pra todos. E o `layout.tsx` lê a aparência antes de desenhar a página e já põe o tema
+no `<html>`, então não existe o piscar da cor antiga. Se a API cair, ele usa o padrão e o site
+abre do mesmo jeito.
+
+**Só as cores mudam, e algumas nem isso.**
+Cada tema redefine as mesmas variáveis de cor que já existiam, então nenhum componente mudou de
+classe e as fontes e o layout ficam iguais. Sucesso, erro, a linha do horário atual e a cor de
+cada barbeiro ficam fixos em qualquer tema, porque têm significado: o "certo" não pode virar
+dourado e o barbeiro não pode trocar de cor na agenda.
+
+**A logo não aceita SVG.**
+SVG pode carregar script, então só JPG, PNG e WEBP, como na foto do barbeiro. O navegador reduz a
+logo pra caber em 600×200 sem cortar e manda em PNG, porque logo costuma ser larga e ter fundo
+transparente (o que o recorte quadrado e o JPEG da foto do barbeiro estragariam).
+
 
 ---
 
@@ -650,34 +741,39 @@ projeto-faculdade/
 │   │   │   ├── cliente.py
 │   │   │   ├── barbeiro.py      # barbeiros + horarios_barbeiro
 │   │   │   ├── servico.py       # etapa 3
-│   │   │   └── agendamento.py   # agendamentos + agendamento_servicos
+│   │   │   ├── agendamento.py   # agendamentos + agendamento_servicos
+│   │   │   └── aparencia.py     # etapa 5: nome, tema e logo (uma linha só)
 │   │   ├── schemas/             # o que entra e sai da API (Pydantic)
 │   │   │   ├── regras.py        # validações que cliente e barbeiro têm iguais
 │   │   │   ├── cliente.py
 │   │   │   ├── barbeiro.py
 │   │   │   ├── servico.py
 │   │   │   ├── agendamento.py
-│   │   │   └── historico.py     # etapa 4
+│   │   │   ├── historico.py     # etapa 4
+│   │   │   └── aparencia.py     # etapa 5
 │   │   ├── crud/                # as consultas no banco
 │   │   │   ├── comum.py         # duplicados, busca e paginação dos dois
 │   │   │   ├── cliente.py
 │   │   │   ├── barbeiro.py
 │   │   │   ├── servico.py
 │   │   │   ├── agendamento.py   # todas as regras da agenda
-│   │   │   └── historico.py     # as contas do histórico (etapa 4)
+│   │   │   ├── historico.py     # as contas do histórico (etapa 4)
+│   │   │   └── aparencia.py     # a linha única da aparência (etapa 5)
 │   │   └── routers/             # as rotas HTTP
 │   │       ├── clientes.py
 │   │       ├── barbeiros.py
 │   │       ├── servicos.py
 │   │       ├── agendamentos.py
-│   │       └── historico.py
+│   │       ├── historico.py
+│   │       └── aparencia.py     # etapa 5
 │   └── tests/                   # os testes do pytest
 │
 └── frontend/
     └── src/
         ├── app/
         │   ├── layout.tsx                    # moldura: menu lateral + área de trabalho
-        │   ├── globals.css                   # a paleta da barbearia no Tailwind
+        │   ├── globals.css                   # a paleta da barbearia no Tailwind (o tema Clássico)
+        │   ├── temas.css                     # etapa 5: as cores dos 4 temas
         │   ├── fontes/                       # Bodoni Moda, Oswald e Karla (.woff2) + licença OFL de cada uma
         │   ├── clientes/
         │   │   ├── page.tsx                  # lista de clientes
@@ -689,6 +785,7 @@ projeto-faculdade/
         │   │   └── [id]/editar/page.tsx      # edição
         │   ├── servicos/                     # etapa 3: lista, novo e edição
         │   ├── historico/page.tsx            # etapa 4: o histórico do mês
+        │   ├── aparencia/page.tsx            # etapa 5: nome, logo e tema
         │   └── agenda/
         │       ├── page.tsx                  # a agenda do dia
         │       ├── novo/page.tsx             # marcar horário
@@ -710,13 +807,15 @@ projeto-faculdade/
         │   ├── Chave.tsx                     # a chave liga/desliga (barbeiro e serviço)
         │   ├── RodapeDoFormulario.tsx / Confirmacao.tsx / Opcao.tsx / Paginacao.tsx
         │   ├── MenuLateral.tsx
+        │   ├── EscolherTema.tsx              # os 4 cartões de tema com miniatura
+        │   ├── AparenciaContexto.tsx         # a aparência (e a prévia) pro menu e as telas
         │   └── Topo.tsx / Secao.tsx / Campo.tsx / Botao.tsx
         └── lib/
             ├── api.ts                        # todas as chamadas ao FastAPI
             ├── mascaras.ts                   # máscaras e validações no navegador
             ├── useFormulario.ts              # dados, erros e aviso de um formulário
             ├── semana.ts                     # as contas da semana de trabalho
-            ├── foto.ts                       # recorta e reduz a foto do barbeiro antes do envio
+            ├── foto.ts                       # recorta a foto do barbeiro e reduz a logo antes do envio
             ├── agenda.ts                     # contas de data, hora e dinheiro da agenda
             └── tipos.ts                      # os tipos do TypeScript
 ```
@@ -814,6 +913,19 @@ Tabela **`agendamento_servicos`** — um agendamento pode ter vários serviços 
 
 O par (`agendamento_id`, `servico_id`) é único: o mesmo serviço não entra duas vezes.
 
+Tabela **`aparencia`** (etapa 5) — **uma linha só** (id 1), criada com os padrões na primeira leitura:
+
+| Coluna | Tipo | Regra |
+|---|---|---|
+| `id` | inteiro | chave primária (sempre 1) |
+| `linha_de_cima` | texto (30) | padrão "Barbearia"; pode ficar vazio |
+| `nome` | texto (40) | obrigatório, padrão "Dom Alfredo" |
+| `tema` | texto (20) | classico, preto, marinho ou verde (padrão: classico) |
+| `logo` | binário | a logo, já reduzida pelo navegador, opcional |
+| `logo_tipo` | texto (30) | image/jpeg, image/png ou image/webp |
+| `logo_atualizada_em` | data e hora | quando a logo mudou — vai no endereço (`?v=`) pro navegador não mostrar a antiga |
+| `atualizado_em` | data e hora | preenchido quando a aparência é editada |
+
 O **histórico** (Etapa 4) não tem tabela própria: ele lê essas duas tabelas. É por isso que o
 preço fica copiado em `agendamento_servicos`, porque assim o relatório de um mês antigo continua
 com os valores daquele mês.
@@ -880,6 +992,14 @@ Base: `http://localhost:8000`
 |---|---|---|
 | `GET` | `/api/historico` | Os atendimentos de um mês, do mais recente pro mais antigo (`?ano=`, `?mes=`, `?barbeiro_id=`, `?cliente_id=`, `?situacao=` com `concluido` (padrão), `faltou`, `cancelado`, `agendado` ou `todas`, `?pagina=`, `?tamanho=`) |
 | `GET` | `/api/historico/resumo` | Os números do mês (`?ano=`, `?mes=`, `?barbeiro_id=`): atendimentos, faturamento, ticket médio, faltas, cancelados, ranking de serviços e os 5 pares cliente e barbeiro |
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/api/aparencia` | O nome, o tema e o endereço da logo (`logo_url`, ou `null` se não tem) |
+| `PUT` | `/api/aparencia` | Muda `linha_de_cima`, `nome` ou `tema` (só os campos enviados) |
+| `PUT` | `/api/aparencia/logo` | Envia ou troca a logo (`multipart/form-data`, campo `logo`, até 2 MB) |
+| `GET` | `/api/aparencia/logo` | Devolve a imagem (404 se não tem) — é o endereço que vai na tela |
+| `DELETE` | `/api/aparencia/logo` | Tira a logo |
 
 ### Exemplo de cadastro
 
@@ -958,6 +1078,14 @@ Lista dos atendimentos de novembro que viraram falta, 10 por página:
 curl "http://localhost:8000/api/historico?ano=2026&mes=11&situacao=faltou&tamanho=10"
 ```
 
+Trocar o nome e o tema da barbearia:
+
+```bash
+curl -X PUT http://localhost:8000/api/aparencia \
+  -H "Content-Type: application/json" \
+  -d '{"nome": "Impacta", "tema": "marinho"}'
+```
+
 ### Códigos de resposta
 
 | Código | Quando acontece |
@@ -966,6 +1094,7 @@ curl "http://localhost:8000/api/historico?ano=2026&mes=11&situacao=faltou&tamanh
 | `200` | Consulta ou edição deu certo |
 | `204` | Cliente excluído |
 | `404` | Não existe cliente com esse id/telefone |
+| `413` / `415` | A logo passou de 2 MB / não é JPG, PNG ou WEBP |
 | `409` | Telefone, CPF ou e-mail já cadastrado em outra ficha; horário que a agenda recusou (choque, folga, fora do expediente); ou exclusão de algo que tem agendamento |
 | `422` | Algum campo do formulário está inválido |
 
@@ -1009,6 +1138,15 @@ No serviço:
 | **Nome** | Obrigatório, mínimo 3 letras, não pode repetir |
 | **Duração** | De 5 a 240 minutos, de 5 em 5 |
 | **Preço** | Maior que zero, até R$ 1.000, no máximo 2 casas depois da vírgula |
+
+Na aparência:
+
+| Campo | Regra |
+|---|---|
+| **Linha de cima** | Opcional, até 30 letras (pode ficar vazia) |
+| **Nome** | Obrigatório, de 1 a 40 letras |
+| **Tema** | Só os 4 da tela: classico, preto, marinho ou verde |
+| **Logo** | Opcional. JPG, PNG ou WEBP de até 2 MB, sem SVG (o navegador já manda reduzida pra 600×200) |
 
 E na agenda, conferido toda vez que se marca ou remarca:
 
