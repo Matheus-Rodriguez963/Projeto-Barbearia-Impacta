@@ -304,6 +304,15 @@ export function sair() {
   return requisitar<void>("/api/logout", { method: "POST" });
 }
 
+/** Encerra a sessão e leva pra tela de login (o menu lateral e o BotaoSair usam a mesma). */
+export async function sairDoSistema() {
+  try {
+    await sair();
+  } finally {
+    window.location.replace("/login");
+  }
+}
+
 /** Quem está logado agora; dá 401 (ErroDaApi) se não tem sessão válida. */
 export function pegarEu() {
   return requisitar<UsuarioLogado>("/api/eu");

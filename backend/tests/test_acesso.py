@@ -1,6 +1,7 @@
 """Testes do login: entrar, sair, sessão vencida e troca da própria senha."""
 
 import hashlib
+from typing import get_args
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -10,6 +11,7 @@ from app.core import senha
 from app.core.acesso import MENUS
 from app.crud import usuarios as crud
 from app.models.usuario import Sessao, Usuario
+from app.schemas.usuario import Menu
 
 
 def test_admin_padrao_entra(cliente_anonimo, sessao):
@@ -113,7 +115,43 @@ def test_trocar_propria_senha(cliente_api, cliente_anonimo):
 def test_senha_nova_curta(cliente_api):
     resposta = cliente_api.put("/api/eu/senha", json={"senha_atual": "123", "senha_nova": "12"})
     assert resposta.status_code == 422
-    assert resposta.json()["erros"][0]["campo"] == "senha_nova"
+    assert resposta.json()["erros"] == [{"campo": "senha_nova", "mensagem": "use pelo menos 4 caracteres"}]
+
+
+def test_senha_nova_longa_demais(cliente_api):
+    resposta = cliente_api.put("/api/eu/senha", json={"senha_atual": "123", "senha_nova": "x" * 73})
+    assert resposta.json()["erros"] == [{"campo": "senha_nova", "mensagem": "use no máximo 72 caracteres"}]
+
+
+def test_login_sem_senha_diz_campo_obrigatorio(cliente_anonimo):
+    resposta = cliente_anonimo.post("/api/login", json={"login": "x"})
+    assert resposta.status_code == 422
+    assert resposta.json()["erros"] == [{"campo": "senha", "mensagem": "campo obrigatório"}]
+
+
+def test_menus_do_schema_e_do_acesso_sao_os_mesmos():
+    assert set(get_args(Menu)) == set(MENUS)
+
+
+def test_novo_login_apaga_sessoes_vencidas(cliente_anonimo, sessao):
+    crud.garantir_admin(sessao)
+    admin = sessao.scalars(select(Usuario)).one()
+    sessao.add(Sessao(usuario_id=admin.id, token_hash="velha", expira_em=datetime.now(timezone.utc) - timedelta(hours=1)))
+    sessao.commit()
+
+    assert cliente_anonimo.post("/api/login", json={"login": "admin", "senha": "123"}).status_code == 200
+    hashes = [registro.token_hash for registro in sessao.scalars(select(Sessao))]
+    assert "velha" not in hashes and len(hashes) == 1
+
+
+def test_entrar_de_novo_fecha_a_sessao_do_cookie_antigo(cliente_anonimo, sessao):
+    crud.garantir_admin(sessao)
+    cliente_anonimo.post("/api/login", json={"login": "admin", "senha": "123"})
+    antigo = sessao.scalars(select(Sessao)).one().token_hash
+
+    cliente_anonimo.post("/api/login", json={"login": "admin", "senha": "123"})  # o cookie antigo vai junto
+    hashes = [registro.token_hash for registro in sessao.scalars(select(Sessao))]
+    assert antigo not in hashes and len(hashes) == 1
 
 
 def test_garantir_admin_nao_duplica(sessao):

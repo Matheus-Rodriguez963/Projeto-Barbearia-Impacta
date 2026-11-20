@@ -7,9 +7,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useAparencia } from "@/components/AparenciaContexto";
-import { sairDoSistema } from "@/components/BotaoSair";
 import { useUsuario } from "@/components/UsuarioContexto";
-import { enderecoDaLogo } from "@/lib/api";
+import { enderecoDaLogo, sairDoSistema } from "@/lib/api";
 import { MENUS } from "@/lib/tipos";
 
 export default function MenuLateral() {

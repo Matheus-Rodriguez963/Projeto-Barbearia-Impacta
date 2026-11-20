@@ -25,13 +25,15 @@ def _como_logado(usuario: Usuario) -> UsuarioLogado:
 
 
 @roteador.post("/login", response_model=UsuarioLogado, summary="Entrar no sistema")
-def entrar(dados: LoginEntrada, resposta: Response, sessao: Session = Depends(pegar_sessao)):
+def entrar(dados: LoginEntrada, request: Request, resposta: Response, sessao: Session = Depends(pegar_sessao)):
     usuario = crud.autenticar(sessao, dados.login, dados.senha)
     if usuario is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Login ou senha incorretos.")
     if not usuario.ativo:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Seu acesso está bloqueado. Fale com o administrador.")
 
+    # entrar de novo com um cookie antigo no navegador: fecha a sessão velha em vez de deixá-la órfã
+    crud.fechar_sessao(sessao, request.cookies.get(NOME_DO_COOKIE))
     token = crud.abrir_sessao(sessao, usuario)
     resposta.set_cookie(
         NOME_DO_COOKIE,

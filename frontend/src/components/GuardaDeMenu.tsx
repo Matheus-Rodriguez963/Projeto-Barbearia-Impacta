@@ -1,7 +1,8 @@
 "use client";
 
 // Se a pessoa digitar o endereço de um menu que não está liberado pra ela, manda pra primeira
-// tela que ela pode abrir. A API também barra (403); isto só evita mostrar uma tela quebrada.
+// tela que ela pode abrir. A API também barra (403); isto só evita mostrar uma tela quebrada:
+// enquanto o caminho é proibido, a página nem chega a ser desenhada (e não chama a API).
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -9,7 +10,7 @@ import { useEffect } from "react";
 import { useUsuario } from "@/components/UsuarioContexto";
 import { MENUS, primeiroCaminho } from "@/lib/tipos";
 
-export default function GuardaDeMenu() {
+export default function GuardaDeMenu({ children }: { children: React.ReactNode }) {
   const usuario = useUsuario();
   const caminho = usePathname();
   const roteador = useRouter();
@@ -25,5 +26,5 @@ export default function GuardaDeMenu() {
     if (proibido && caminho !== destino) roteador.replace(destino);
   }, [proibido, caminho, destino, roteador]);
 
-  return null;
+  return proibido ? null : children;
 }

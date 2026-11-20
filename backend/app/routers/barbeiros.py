@@ -92,7 +92,7 @@ def ver_foto(barbeiro_id: int, sessao: Session = Depends(pegar_sessao)):
     return Response(
         content=barbeiro.foto,
         media_type=barbeiro.foto_tipo,
-        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        headers={"Cache-Control": "private, max-age=31536000, immutable"},
     )
 
 

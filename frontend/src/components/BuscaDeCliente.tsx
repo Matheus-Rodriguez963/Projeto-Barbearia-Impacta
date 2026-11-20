@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 
 import Botao from "@/components/Botao";
 import { classeInput } from "@/components/Campo";
+import { useUsuario } from "@/components/UsuarioContexto";
 import { listarClientes } from "@/lib/api";
 
 export interface ClienteEscolhido {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function BuscaDeCliente({ cliente, onEscolher, focar = false }: Props) {
+  const podeCadastrar = useUsuario().menus.includes("clientes"); // sem o menu Clientes a rota barraria
   const [busca, setBusca] = useState("");
   const [achados, setAchados] = useState<ClienteEscolhido[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -78,10 +80,15 @@ export default function BuscaDeCliente({ cliente, onEscolher, focar = false }: P
       />
       {busca.trim().length >= 2 && !buscando && achados.length === 0 && (
         <p className="m-0 text-[13px] text-tinta-fraca">
-          Ninguém com esse telefone ou nome.{" "}
-          <Link href="/clientes/novo" className="border-b border-terracota/35 text-terracota">
-            Cadastrar cliente
-          </Link>
+          Ninguém com esse telefone ou nome.
+          {podeCadastrar && (
+            <>
+              {" "}
+              <Link href="/clientes/novo" className="border-b border-terracota/35 text-terracota">
+                Cadastrar cliente
+              </Link>
+            </>
+          )}
         </p>
       )}
       {achados.map((achado, posicao) => (

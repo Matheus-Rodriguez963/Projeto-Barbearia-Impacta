@@ -5,6 +5,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core import senha as cofre
@@ -55,6 +56,8 @@ def autenticar(sessao: Session, login: str, senha: str) -> Usuario | None:
 
 def abrir_sessao(sessao: Session, usuario: Usuario) -> str:
     """Cria a sessão no banco e devolve o token cru (que vai pro cookie)."""
+    # aproveita pra jogar fora as sessões vencidas, senão elas só se acumulam na tabela
+    sessao.execute(delete(Sessao).where(Sessao.expira_em < _agora()))
     token = secrets.token_urlsafe(32)
     sessao.add(
         Sessao(usuario_id=usuario.id, token_hash=_hash_do_token(token), expira_em=_agora() + DURACAO_DA_SESSAO)
@@ -123,7 +126,11 @@ def criar_recepcionista(sessao: Session, login: str, senha: str, menus: list[str
         senha_padrao=False,
     )
     sessao.add(usuario)
-    sessao.commit()
+    try:
+        sessao.commit()
+    except IntegrityError:  # duas requisições com o mesmo login ao mesmo tempo: a segunda cai aqui
+        sessao.rollback()
+        raise RegistroDuplicado("login", login, "usuário", "Já existe um usuário com esse login.")
     return usuario
 
 

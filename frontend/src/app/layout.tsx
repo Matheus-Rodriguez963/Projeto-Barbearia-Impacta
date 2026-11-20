@@ -6,9 +6,10 @@ import localFont from "next/font/local";
 import { cache } from "react";
 
 import { ProvedorDeAparencia } from "@/components/AparenciaContexto";
+import ApiForaDoAr from "@/components/ApiForaDoAr";
 import GuardaDeMenu from "@/components/GuardaDeMenu";
-import IrParaLogin from "@/components/IrParaLogin";
 import MenuLateral from "@/components/MenuLateral";
+import SemUsuario from "@/components/SemUsuario";
 import { ProvedorDeUsuario } from "@/components/UsuarioContexto";
 import { URL_DA_API } from "@/lib/api";
 import { lerUsuario } from "@/lib/servidor";
@@ -66,24 +67,24 @@ export default async function LayoutRaiz({ children }: { children: React.ReactNo
     >
       <body>
         <ProvedorDeAparencia inicial={aparencia}>
-          {usuario ? (
+          {usuario === "api_fora" ? (
+            <ApiForaDoAr />
+          ) : usuario ? (
             <ProvedorDeUsuario usuario={usuario}>
-              <GuardaDeMenu />
               {/* o sistema ocupa a tela inteira: h-dvh é a altura real da janela,
                   e o que passa disso rola dentro de cada área, não na página */}
               <div className="flex h-dvh w-full overflow-hidden">
                 <MenuLateral />
 
-                <main className="papel-pautado flex min-w-0 flex-1 flex-col bg-papel">{children}</main>
+                <main className="papel-pautado flex min-w-0 flex-1 flex-col bg-papel">
+                  <GuardaDeMenu>{children}</GuardaDeMenu>
+                </main>
               </div>
             </ProvedorDeUsuario>
           ) : (
             // sem usuário (tela de login, ou cookie velho): tela cheia, sem menu.
-            // Fora do /login o IrParaLogin leva pra lá; o proxy cuida de quem nem tem cookie.
-            <>
-              <IrParaLogin />
-              {children}
-            </>
+            // Fora do /login o SemUsuario não desenha nada e leva pra lá; o proxy cuida de quem nem tem cookie.
+            <SemUsuario>{children}</SemUsuario>
           )}
         </ProvedorDeAparencia>
       </body>

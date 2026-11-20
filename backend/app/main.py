@@ -91,8 +91,14 @@ async def tratar_validacao(request: Request, erro: RequestValidationError):
         campo = nomes[0] if nomes else "geral"
 
         mensagem = item["msg"].replace("Value error, ", "")
-        if item["type"] == "literal_error":  # o Pydantic manda essa em inglês
+        if item["type"] == "literal_error":  # o Pydantic manda essas em inglês
             mensagem = "opção inválida — escolha uma das opções da tela"
+        elif item["type"] == "string_too_short":
+            mensagem = f"use pelo menos {item['ctx']['min_length']} caracteres"
+        elif item["type"] == "string_too_long":
+            mensagem = f"use no máximo {item['ctx']['max_length']} caracteres"
+        elif item["type"] == "missing":
+            mensagem = "campo obrigatório"
 
         problemas.append({"campo": campo, "mensagem": mensagem})
 

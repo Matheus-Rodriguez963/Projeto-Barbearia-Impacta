@@ -9,6 +9,7 @@ import { primeiroCaminho } from "@/lib/tipos";
 
 export default async function Inicio() {
   const usuario = await lerUsuario();
+  if (usuario === "api_fora") return null; // o layout já mostra o aviso; redirecionar aqui criaria um vai e volta
   if (!usuario) redirect("/login");
 
   const caminho = primeiroCaminho(usuario);
