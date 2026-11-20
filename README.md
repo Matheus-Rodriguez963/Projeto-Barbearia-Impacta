@@ -1,15 +1,15 @@
 # Barbearia Dom Alfredo — Sistema de Gestão
 
-Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 3: os serviços e o
-agendamento**, somando com a Etapa 1 (cadastro de clientes) e a Etapa 2 (cadastro de
-barbeiros) — todas completas com front-end, back-end, banco de dados e testes automatizados.
+Trabalho de faculdade desenvolvido por etapas. **Esta entrega é a Etapa 4: o histórico de
+atendimentos**, somando com a Etapa 1 (cadastro de clientes), a Etapa 2 (cadastro de
+barbeiros) e a Etapa 3 (serviços e agendamento) — todas completas com front-end, back-end, banco de dados e testes automatizados.
 
 O sistema simula o balcão de uma barbearia: a recepcionista cadastra o cliente perguntando
 primeiro o telefone (que é a chave de busca da agenda) e o resto da ficha pode ser
 completado depois.
 
 **Next.js 16 + TypeScript + Tailwind 4** no front · **FastAPI + SQLAlchemy 2** no back ·
-**PostgreSQL 16** no banco · **127 testes** no pytest
+**PostgreSQL 16** no banco · **141 testes** no pytest
 
 ---
 
@@ -133,10 +133,26 @@ Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as f
 
 | Camada | Entrega |
 |---|---|
-| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem com busca, edição e exclusão. Agenda do dia, marcar, remarcar, concluir, falta e cancelamento |
-| **Back-end** | API REST com clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (7 rotas), validações e tratamento de erros |
+| **Front-end** | Clientes, barbeiros e serviços: cadastro, listagem com busca, edição e exclusão. Agenda do dia, marcar, remarcar, concluir, falta e cancelamento. Histórico do mês com ranking de serviços |
+| **Back-end** | API REST com clientes (6 rotas), barbeiros (8 rotas, com a foto), serviços (5 rotas) e agendamentos (7 rotas), histórico (2 rotas), validações e tratamento de erros |
 | **Banco** | Tabelas `clientes`, `barbeiros`, `horarios_barbeiro`, `servicos`, `agendamentos` e `agendamento_servicos` criadas pelo SQLAlchemy |
-| **Testes** | 127 testes no pytest cobrindo as validações, todas as rotas da API e as regras da agenda |
+| **Testes** | 141 testes no pytest cobrindo as validações, todas as rotas da API, as regras da agenda e as contas do histórico |
+
+### Etapa 4 — histórico de atendimentos
+
+Tela nova no menu, **Histórico** (`/historico`), pra olhar o que já aconteceu, um mês de cada vez.
+
+- **Navegação por mês:** setas pra voltar e avançar. O mês de hoje abre por padrão.
+- **Três números no topo:** atendimentos, faturamento e ticket médio do mês.
+- **Filtros:** por barbeiro, por cliente e por situação (concluído, faltou, cancelado, agendado
+  ou todas). Começa em "concluído", que é o que interessa pro caixa.
+- **Tabela:** do atendimento mais recente pro mais antigo, com paginação.
+- **Mais pedidos:** o ranking dos serviços do mês, com uma barra de quanto cada um pesa.
+- **Cliente e barbeiro:** os 5 pares que mais se repetem (quem sempre corta com quem).
+- **Faltas e cancelados:** o resumo também conta, mas à parte, sem entrar no faturamento.
+- **Dados de exemplo:** o `popular_banco.py` agora cadastra também uns 15 atendimentos concluídos
+  e 2 faltas no passado, pra a tela não abrir vazia. Se já existir atendimento concluído, ele
+  não repete.
 
 ### Etapa 3 — serviços e agendamento
 
@@ -410,6 +426,7 @@ npm run dev
 | **Agenda do dia** | http://localhost:3020/agenda |
 | Marcar horário | http://localhost:3020/agenda/novo |
 | Serviços | http://localhost:3020/servicos |
+| **Histórico do mês** | http://localhost:3020/historico |
 | API | http://localhost:8000 |
 | **Documentação da API (Swagger)** | http://localhost:8000/docs |
 
@@ -432,21 +449,23 @@ Ou pelo atalho: `bash scripts/rodar-testes.sh` (Linux/macOS) ou
 Saída esperada:
 
 ```
-tests/test_agendamento.py ................................          [ 25%]
-tests/test_cadastro_barbeiro.py .....................................  [ 54%]
-tests/test_cadastro_cliente.py ..........................           [ 73%]
-tests/test_cadastro_servico.py .............                        [ 84%]
+tests/test_agendamento.py ................................          [ 22%]
+tests/test_cadastro_barbeiro.py .....................................  [ 48%]
+tests/test_cadastro_cliente.py ..........................           [ 67%]
+tests/test_cadastro_servico.py .............                        [ 76%]
+tests/test_historico.py ..............                             [ 86%]
 tests/test_validadores.py ...................                      [100%]
 
-======================== 127 passed in 18.57s ========================
+======================== 141 passed in 18.57s ========================
 ```
 
 Para ver o nome de cada teste, `pytest -v`.
 
-### O que os 127 testes cobrem
+### O que os 141 testes cobrem
 
 | Arquivo | Testes | O que verifica |
 |---|---|---|
+| `test_historico.py` | 14 | As 2 rotas do histórico: só o concluído entra na conta, o preço combinado na marcação, os filtros, o mês sem atendimento, o ranking de serviços e os pares cliente e barbeiro |
 | `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
 | `test_cadastro_cliente.py` | 26 | As 6 rotas da API, os erros de validação (422), os cadastros duplicados (409) e o cliente inexistente (404) |
 | `test_cadastro_barbeiro.py` | 37 | As 8 rotas de barbeiro, o horário de cada dia, as opções de ofício, os duplicados, se os horários somem junto com o barbeiro e o envio da foto (tipo e tamanho) |
@@ -470,6 +489,8 @@ Alguns casos que eu fiz questão de cobrir, porque são os que costumam passar b
 - **Remarcar no mesmo horário** não pode bater com o próprio agendamento.
 - O preço que fica no agendamento é **o do dia em que foi marcado**, mesmo se o serviço subir.
 - A ocupação do calendário **não conta o cancelado** e diz que ninguém trabalha na segunda.
+- No histórico, **falta e cancelado não entram no faturamento** e o valor é o combinado na
+  marcação, mesmo se o serviço mudou de preço depois.
 
 Os testes da agenda **travam o relógio** (com o `monkeypatch` do pytest) numa segunda-feira de
 2029. Sem isso, "esse horário já passou" dependeria do dia em que o teste roda, e um teste
@@ -548,6 +569,11 @@ tentarem o mesmo horário ao mesmo tempo, a segunda recebe o aviso na hora de co
 Não tem DELETE de agendamento: cancelar libera o horário e deixa registrado. Concluído e falta
 só podem ser marcados depois que o horário chegou, e um agendamento fechado não muda mais.
 
+**No histórico, só o atendimento concluído conta.**
+Faturamento, ticket médio, ranking e pares usam só o que foi concluído. Falta e cancelado
+aparecem como número à parte, porque não entrou dinheiro. O valor vem do preço copiado no
+agendamento, então mudar o preço do serviço hoje não reescreve o mês passado.
+
 
 ---
 
@@ -564,7 +590,7 @@ projeto-faculdade/
 │   ├── requirements.txt         # dependências do Python
 │   ├── .env.example             # modelo das configurações
 │   ├── pytest.ini
-│   ├── popular_banco.py         # cadastra clientes e barbeiros de exemplo
+│   ├── popular_banco.py         # cadastra clientes, barbeiros, serviços e atendimentos de exemplo
 │   ├── app/
 │   │   ├── main.py              # onde a API começa (CORS, erros, rotas)
 │   │   ├── core/
@@ -582,18 +608,21 @@ projeto-faculdade/
 │   │   │   ├── cliente.py
 │   │   │   ├── barbeiro.py
 │   │   │   ├── servico.py
-│   │   │   └── agendamento.py
+│   │   │   ├── agendamento.py
+│   │   │   └── historico.py     # etapa 4
 │   │   ├── crud/                # as consultas no banco
 │   │   │   ├── comum.py         # duplicados, busca e paginação dos dois
 │   │   │   ├── cliente.py
 │   │   │   ├── barbeiro.py
 │   │   │   ├── servico.py
-│   │   │   └── agendamento.py   # todas as regras da agenda
+│   │   │   ├── agendamento.py   # todas as regras da agenda
+│   │   │   └── historico.py     # as contas do histórico (etapa 4)
 │   │   └── routers/             # as rotas HTTP
 │   │       ├── clientes.py
 │   │       ├── barbeiros.py
 │   │       ├── servicos.py
-│   │       └── agendamentos.py
+│   │       ├── agendamentos.py
+│   │       └── historico.py
 │   └── tests/                   # os testes do pytest
 │
 └── frontend/
@@ -610,6 +639,7 @@ projeto-faculdade/
         │   │   ├── novo/page.tsx             # cadastro
         │   │   └── [id]/editar/page.tsx      # edição
         │   ├── servicos/                     # etapa 3: lista, novo e edição
+        │   ├── historico/page.tsx            # etapa 4: o histórico do mês
         │   └── agenda/
         │       ├── page.tsx                  # a agenda do dia
         │       ├── novo/page.tsx             # marcar horário
@@ -790,6 +820,11 @@ Base: `http://localhost:8000`
 | `GET` | `/api/agendamentos/{id}` | Abre um agendamento |
 | `PUT` | `/api/agendamentos/{id}` | Remarca (manda o agendamento inteiro de novo) |
 | `PUT` | `/api/agendamentos/{id}/situacao` | `concluido`, `faltou` ou `cancelado` |
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/api/historico` | Os atendimentos de um mês, do mais recente pro mais antigo (`?ano=`, `?mes=`, `?barbeiro_id=`, `?cliente_id=`, `?situacao=` com `concluido` (padrão), `faltou`, `cancelado`, `agendado` ou `todas`, `?pagina=`, `?tamanho=`) |
+| `GET` | `/api/historico/resumo` | Os números do mês (`?ano=`, `?mes=`, `?barbeiro_id=`): atendimentos, faturamento, ticket médio, faltas, cancelados, ranking de serviços e os 5 pares cliente e barbeiro |
 
 ### Exemplo de cadastro
 
