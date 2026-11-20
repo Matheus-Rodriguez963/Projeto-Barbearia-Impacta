@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import config
 from app.core.database import Base, pegar_sessao
+from app.crud import usuarios as crud_usuarios
 from app.main import app
 
 
@@ -53,9 +54,16 @@ def sessao():
         Base.metadata.drop_all(bind=engine_teste)
 
 
+def entrar_como(cliente, login, senha):
+    """Faz o login pelo cliente de teste; o cookie fica guardado nele pras próximas chamadas."""
+    resposta = cliente.post("/api/login", json={"login": login, "senha": senha})
+    assert resposta.status_code == 200, resposta.text
+    return resposta
+
+
 @pytest.fixture
-def cliente_api(sessao):
-    """TestClient já apontando pro banco de teste no lugar do banco de verdade."""
+def cliente_anonimo(sessao):
+    """TestClient apontando pro banco de teste, mas sem ninguém logado."""
 
     def sessao_de_teste():
         yield sessao
@@ -64,6 +72,26 @@ def cliente_api(sessao):
 
     # sem 'with' o TestClient não dispara o lifespan, ou seja, não encosta no banco real
     yield TestClient(app)
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def cliente_api(sessao):
+    """Igual ao anônimo, mas já logado como admin (assim os testes antigos seguem valendo).
+
+    É outro TestClient, então os dois podem aparecer no mesmo teste sem dividir cookie.
+    """
+
+    def sessao_de_teste():
+        yield sessao
+
+    app.dependency_overrides[pegar_sessao] = sessao_de_teste
+
+    crud_usuarios.garantir_admin(sessao)
+    cliente = TestClient(app)
+    entrar_como(cliente, "admin", "123")
+    yield cliente
 
     app.dependency_overrides.clear()
 

@@ -12,10 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import config
-from app.core.database import Base, acrescentar_colunas_novas, engine
+from app.core.database import Base, SessaoLocal, acrescentar_colunas_novas, engine
 from app.core.erros import RegistroDuplicado, RegistroEmUso, RegraDaAgenda
-from app.models import Agendamento, Aparencia, Barbeiro, Cliente, Servico  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
-from app.routers import agendamentos, aparencia, barbeiros, clientes, historico, servicos
+from app.crud import usuarios as crud_usuarios
+from app.models import Agendamento, Aparencia, Barbeiro, Cliente, Servico, Sessao, Usuario  # noqa: F401 - precisa importar pro SQLAlchemy enxergar as tabelas
+from app.routers import acesso, agendamentos, aparencia, barbeiros, clientes, historico, servicos
 
 
 @asynccontextmanager
@@ -24,6 +25,8 @@ async def ciclo_de_vida(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
         acrescentar_colunas_novas(engine)
+        with SessaoLocal() as sessao:
+            crud_usuarios.garantir_admin(sessao)  # primeira subida: cria o admin / 123
         print("Banco conectado e tabelas prontas.")
     except Exception as erro:  # normalmente é o Postgres que não está de pé
         print("\n[ERRO] Não consegui falar com o banco.")
@@ -36,8 +39,8 @@ async def ciclo_de_vida(app: FastAPI):
 
 app = FastAPI(
     title="Barbearia Dom Alfredo — API",
-    description="Etapa 1: clientes · Etapa 2: barbeiros · Etapa 3: serviços e agendamento · Etapa 4: histórico · Etapa 5: aparência.",
-    version="5.0.0",
+    description="Etapa 1: clientes · Etapa 2: barbeiros · Etapa 3: serviços e agendamento · Etapa 4: histórico · Etapa 5: aparência · Etapa 6: login e acessos.",
+    version="6.0.0",
     lifespan=ciclo_de_vida,
 )
 
@@ -99,6 +102,7 @@ async def tratar_validacao(request: Request, erro: RequestValidationError):
     )
 
 
+app.include_router(acesso.roteador)
 app.include_router(clientes.roteador)
 app.include_router(barbeiros.roteador)
 app.include_router(servicos.roteador)

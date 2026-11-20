@@ -3,5 +3,16 @@ from app.models.aparencia import Aparencia
 from app.models.barbeiro import Barbeiro, HorarioBarbeiro
 from app.models.cliente import Cliente
 from app.models.servico import Servico
+from app.models.usuario import Sessao, Usuario
 
-__all__ = ["Agendamento", "Aparencia", "Barbeiro", "Cliente", "HorarioBarbeiro", "ItemDoAgendamento", "Servico"]
+__all__ = [
+    "Agendamento",
+    "Aparencia",
+    "Barbeiro",
+    "Cliente",
+    "HorarioBarbeiro",
+    "ItemDoAgendamento",
+    "Servico",
+    "Sessao",
+    "Usuario",
+]
