@@ -41,7 +41,7 @@ export default function FichaBarbeiro(props: Props) {
             {especialidades.map((especialidade) => (
               <span
                 key={especialidade}
-                className="border border-sucesso/40 px-2.25 pt-1.25 pb-1 font-rotulo text-[9px] tracking-[0.16em] text-sucesso uppercase"
+                className="border border-oliva/40 px-2.25 pt-1.25 pb-1 font-rotulo text-[9px] tracking-[0.16em] text-oliva uppercase"
               >
                 {especialidade}
               </span>

@@ -23,7 +23,7 @@
   --color-terracota-claro: #34322e;
   --color-latao: #d4af37;
   --color-latao-claro: #e6c96e;
-  --color-oliva: #b8962e; /* só nas barras do ranking, nunca como texto */
+  --color-oliva: #86691c; /* a prévia tinha #b8962e, que dava 2,8:1 nas etiquetas de especialidade */
   --color-papel: #f3f1ec;
   --color-papel-claro: #fffefb;
   --color-tinta: #1c1b19;
