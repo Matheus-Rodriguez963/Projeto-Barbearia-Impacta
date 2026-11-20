@@ -218,3 +218,37 @@ export interface DiaDoMes {
   trabalha: boolean; // alguém da equipe trabalha nesse dia da semana
   ocupacao: number; // 0 a 100
 }
+
+// ---------------------------------------------------------------- histórico de atendimentos
+
+export type FiltroDeSituacao = Situacao | "todas";
+
+export interface ListaDeHistorico {
+  total: number;
+  itens: Agendamento[];
+}
+
+export interface ServicoDoRanking {
+  servico_id: number;
+  nome: string;
+  quantidade: number;
+  faturamento: number;
+}
+
+// quantas vezes o mesmo cliente foi atendido pelo mesmo barbeiro no mês
+export interface ParClienteBarbeiro {
+  cliente: Agendamento["cliente"];
+  barbeiro: Agendamento["barbeiro"];
+  atendimentos: number;
+}
+
+// só os atendimentos concluídos entram nesses números (faltas e cancelados são contados à parte)
+export interface ResumoDoMes {
+  atendimentos: number;
+  faturamento: number;
+  ticket_medio: number;
+  faltas: number;
+  cancelados: number;
+  servicos: ServicoDoRanking[];
+  pares: ParClienteBarbeiro[];
+}
