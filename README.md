@@ -62,6 +62,12 @@ e só os horários livres. O resumo da direita fecha o total:
 
 ![Cadastro de serviço](docs/imagens/cadastro-de-servico.jpg)
 
+**Histórico do mês** — quem atendeu quem, quanto entrou e o que a casa mais fez no mês. Os
+filtros mudam a lista e as contas juntos, e à direita aparecem os serviços mais pedidos e os
+clientes que sempre voltam no mesmo barbeiro:
+
+![Histórico do mês](docs/imagens/historico-do-mes.jpg)
+
 ---
 
 ## Índice
@@ -141,15 +147,49 @@ Se algo não subir, a seção [Deu problema?](#deu-problema-soluções) tem as f
 ### Etapa 4 — histórico de atendimentos
 
 Tela nova no menu, **Histórico** (`/historico`), pra olhar o que já aconteceu, um mês de cada vez.
+A agenda mostra o dia que está acontecendo; o histórico é o relatório do mês, pra quem cuida da
+casa saber **quem atendeu quem** e **quais serviços a barbearia mais prestou**.
 
-- **Navegação por mês:** setas pra voltar e avançar. O mês de hoje abre por padrão.
-- **Três números no topo:** atendimentos, faturamento e ticket médio do mês.
-- **Filtros:** por barbeiro, por cliente e por situação (concluído, faltou, cancelado, agendado
-  ou todas). Começa em "concluído", que é o que interessa pro caixa.
-- **Tabela:** do atendimento mais recente pro mais antigo, com paginação.
-- **Mais pedidos:** o ranking dos serviços do mês, com uma barra de quanto cada um pesa.
-- **Cliente e barbeiro:** os 5 pares que mais se repetem (quem sempre corta com quem).
-- **Faltas e cancelados:** o resumo também conta, mas à parte, sem entrar no faturamento.
+**O que a tela mostra**
+
+- **Navegação por mês:** `‹ Novembro 2026 ›`, com setas pra voltar e avançar. Abre no mês de hoje.
+- **Três números no topo:** atendimentos, faturamento e ticket médio (faturamento dividido pelos
+  atendimentos). Ao lado, em letra menor, quantas faltas e quantos cancelamentos teve.
+- **A lista dos atendimentos:** data e hora, cliente, barbeiro (com a cor dele na agenda),
+  serviços, total e situação. Vem do mais recente pro mais antigo, 20 por página.
+- **Mais pedidos:** o ranking dos serviços do mês, com quantas vezes cada um foi feito, quanto
+  rendeu e uma barra do tamanho que ele pesa perto do primeiro colocado.
+- **Cliente e barbeiro:** os 5 pares que mais se repetem no mês, ou seja, os clientes que
+  sempre voltam na mesma cadeira.
+
+**Os filtros**
+
+- **Barbeiro:** mostra o mês de um barbeiro só. Os números do topo e o ranking também passam a
+  contar só ele.
+- **Cliente:** busca pelo telefone ou pelo nome, com o mesmo campo da tela de marcar.
+- **Situação:** concluídos (o padrão), faltas, cancelados, agendados ou todos.
+- Trocar de mês ou de filtro volta a lista pra primeira página.
+
+**As regras das contas**
+
+- Só o atendimento **concluído** entra no faturamento, no ticket médio, no ranking e nos pares.
+  Falta e cancelamento aparecem só como número à parte, porque não entrou dinheiro.
+- O valor de cada serviço é **o preço combinado na hora de marcar**, que fica guardado no
+  agendamento. Se o corte subir de R$ 55 pra R$ 70 hoje, o mês passado continua somando R$ 55.
+- Mês sem nenhum atendimento mostra tudo zerado (o ticket médio fica R$ 0,00, sem dividir por
+  zero) e o aviso "Nenhum atendimento nesse mês."
+
+**Como foi feito**
+
+- **Sem tabela nova:** tudo sai das tabelas `agendamentos` e `agendamento_servicos` que já
+  existiam desde a Etapa 3. As somas são feitas pelo próprio banco, com `GROUP BY`.
+- **Back-end:** roteador novo `/api/historico` com duas rotas (a lista e o resumo do mês), no
+  mesmo padrão das outras partes: `routers/historico.py`, `crud/historico.py` e
+  `schemas/historico.py`. A lista reaproveita o formato do agendamento da agenda.
+- **Front-end:** a página `app/historico/page.tsx` e o componente `RankingDeServicos.tsx`
+  (as barrinhas), usando os mesmos componentes das outras telas (topo, seções, paginação e a
+  busca de cliente).
+- **Testes:** 14 testes novos em `tests/test_historico.py` (a suíte inteira tem 141).
 - **Dados de exemplo:** o `popular_banco.py` agora cadastra também uns 15 atendimentos concluídos
   e 2 faltas no passado, pra a tela não abrir vazia. Se já existir atendimento concluído, ele
   não repete.
@@ -774,6 +814,10 @@ Tabela **`agendamento_servicos`** — um agendamento pode ter vários serviços 
 
 O par (`agendamento_id`, `servico_id`) é único: o mesmo serviço não entra duas vezes.
 
+O **histórico** (Etapa 4) não tem tabela própria: ele lê essas duas tabelas. É por isso que o
+preço fica copiado em `agendamento_servicos`, porque assim o relatório de um mês antigo continua
+com os valores daquele mês.
+
 Para espiar o banco por dentro:
 
 ```bash
@@ -803,6 +847,8 @@ Base: `http://localhost:8000`
 | `PUT` | `/api/clientes/{id}` | Edita a ficha (só os campos enviados) |
 | `DELETE` | `/api/clientes/{id}` | Exclui o cadastro |
 
+| Método | Rota | O que faz |
+|---|---|---|
 | `POST` | `/api/barbeiros` | Cadastra um barbeiro novo |
 | `GET` | `/api/barbeiros` | Lista a equipe (`?busca=`, `?ativo=true`, `?pagina=`, `?tamanho=`) |
 | `GET` | `/api/barbeiros/{id}` | Abre a ficha do barbeiro, com os horários |
@@ -877,6 +923,39 @@ Agendamento (corte + barba às 9h; o fim e o total a API calcula):
 curl -X POST http://localhost:8000/api/agendamentos \
   -H "Content-Type: application/json" \
   -d '{"cliente_id": 1, "barbeiro_id": 2, "servicos": [1, 3], "data": "2026-11-03", "inicio": "09:00"}'
+```
+
+Resumo do histórico de novembro (com `&barbeiro_id=2`, as contas seriam só desse barbeiro):
+
+```bash
+curl "http://localhost:8000/api/historico/resumo?ano=2026&mes=11"
+```
+
+```json
+{
+  "atendimentos": 305,
+  "faturamento": 18560.0,
+  "ticket_medio": 60.85,
+  "faltas": 30,
+  "cancelados": 25,
+  "servicos": [
+    {"servico_id": 2, "nome": "Corte clássico", "quantidade": 93, "faturamento": 4650.0},
+    {"servico_id": 1, "nome": "Barba", "quantidade": 54, "faturamento": 1890.0}
+  ],
+  "pares": [
+    {"cliente": {"id": 17, "nome": "Diego Fernandes", "...": "..."},
+     "barbeiro": {"id": 3, "nome": "Alfredo Bastos", "...": "..."},
+     "atendimentos": 31}
+  ]
+}
+```
+
+(As listas foram cortadas aqui; a resposta de verdade traz todos os serviços do mês e os 5 pares.)
+
+Lista dos atendimentos de novembro que viraram falta, 10 por página:
+
+```bash
+curl "http://localhost:8000/api/historico?ano=2026&mes=11&situacao=faltou&tamanho=10"
 ```
 
 ### Códigos de resposta
