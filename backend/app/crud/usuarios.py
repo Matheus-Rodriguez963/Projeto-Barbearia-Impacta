@@ -12,6 +12,9 @@ from app.models.usuario import Sessao, Usuario
 
 DURACAO_DA_SESSAO = timedelta(hours=12)
 
+# hash de mentira, calculado uma vez, só pra login inexistente gastar o mesmo tempo de um real
+_HASH_DE_MENTIRA = cofre.gerar_hash("x")
+
 
 def _hash_do_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
@@ -42,8 +45,8 @@ def autenticar(sessao: Session, login: str, senha: str) -> Usuario | None:
     """Devolve o usuário se login e senha batem (bloqueado também volta; quem decide é a rota)."""
     usuario = sessao.scalar(select(Usuario).where(Usuario.login == login.strip().lower()))
     if usuario is None:
-        # gasto o mesmo tempo de uma conferência pra não revelar que o login não existe
-        cofre.conferir(senha, cofre.gerar_hash("x"))
+        # uma conferência só (igual a de um usuário real) pra não revelar que o login não existe
+        cofre.conferir(senha, _HASH_DE_MENTIRA)
         return None
     return usuario if cofre.conferir(senha, usuario.senha_hash) else None
 

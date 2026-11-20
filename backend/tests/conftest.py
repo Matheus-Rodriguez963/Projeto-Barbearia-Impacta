@@ -10,10 +10,20 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+from app.core import senha as cofre
 from app.core.config import config
 from app.core.database import Base, pegar_sessao
 from app.crud import usuarios as crud_usuarios
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def scrypt_barato(monkeypatch):
+    """Nos testes o scrypt usa custo mínimo (n=2): cada login pesava ~0,3 s e a suíte passava de 1 min.
+
+    Em produção o custo continua n=2**14; test_hash_usa_os_parametros_de_producao confere isso.
+    """
+    monkeypatch.setattr(cofre, "_N", 2)
 
 
 def _montar_engine():

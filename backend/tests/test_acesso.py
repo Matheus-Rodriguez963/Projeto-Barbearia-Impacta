@@ -1,7 +1,9 @@
 """Testes do login: entrar, sair, sessão vencida e troca da própria senha."""
 
+import hashlib
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from sqlalchemy import select
 
 from app.core import senha
@@ -127,3 +129,22 @@ def test_hash_nao_guarda_senha():
     assert senha.conferir("123", guardado) is True
     assert senha.conferir("124", guardado) is False
     assert senha.conferir("123", "lixo") is False
+
+
+def test_hash_usa_os_parametros_de_producao(monkeypatch):
+    # o conftest baixa o custo nos testes; aqui volto ao valor real e confiro contra o scrypt puro
+    monkeypatch.undo()
+    guardado = senha.gerar_hash("123")
+    formato, sal_hex, hash_hex = guardado.split("$")
+    assert formato == "scrypt" and len(bytes.fromhex(sal_hex)) == 16
+    esperado = hashlib.scrypt(b"123", salt=bytes.fromhex(sal_hex), n=2**14, r=8, p=1, dklen=32)
+    assert bytes.fromhex(hash_hex) == esperado
+
+
+def test_login_inexistente_confere_uma_vez_so(sessao, monkeypatch):
+    chamadas = []
+    original = senha.conferir
+    monkeypatch.setattr(senha, "conferir", lambda *a: chamadas.append(a) or original(*a))
+    monkeypatch.setattr(senha, "gerar_hash", lambda *a: pytest.fail("não deve gerar hash no login"))
+    assert crud.autenticar(sessao, "ninguem", "x") is None
+    assert len(chamadas) == 1
