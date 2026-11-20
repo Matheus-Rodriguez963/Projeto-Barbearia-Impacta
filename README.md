@@ -548,6 +548,14 @@ tentarem o mesmo horário ao mesmo tempo, a segunda recebe o aviso na hora de co
 Não tem DELETE de agendamento: cancelar libera o horário e deixa registrado. Concluído e falta
 só podem ser marcados depois que o horário chegou, e um agendamento fechado não muda mais.
 
+**As fontes ficam dentro do projeto.**
+Antes elas vinham do `next/font/google`, que baixa do Google Fonts toda vez que o site compila.
+Um dia o Google devolveu a Oswald num endereço que o Turbopack não consegue ler, e o site parou
+de abrir com o erro `next/font/google queries have exactly one entry`. Agora os três arquivos
+`.woff2` estão em `frontend/src/app/fontes/` e são carregados com `next/font/local`: o site
+compila igual sempre, mesmo sem internet. As três fontes são de licença livre (SIL OFL), e a
+licença de cada uma está na mesma pasta.
+
 
 ---
 
@@ -601,6 +609,7 @@ projeto-faculdade/
         ├── app/
         │   ├── layout.tsx                    # moldura: menu lateral + área de trabalho
         │   ├── globals.css                   # a paleta da barbearia no Tailwind
+        │   ├── fontes/                       # Bodoni Moda, Oswald e Karla (.woff2) + licença OFL de cada uma
         │   ├── clientes/
         │   │   ├── page.tsx                  # lista de clientes
         │   │   ├── novo/page.tsx             # cadastro

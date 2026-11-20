@@ -2,15 +2,19 @@
 // e a área de papel onde cada página é desenhada.
 
 import type { Metadata } from "next";
-import { Bodoni_Moda, Karla, Oswald } from "next/font/google";
+import localFont from "next/font/local";
 
 import MenuLateral from "@/components/MenuLateral";
 import "./globals.css";
 
-// next/font baixa as fontes no build e serve junto com o site (não depende do Google depois)
-const bodoni = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "700"], variable: "--fonte-bodoni" });
-const oswald = Oswald({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--fonte-oswald" });
-const karla = Karla({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--fonte-karla" });
+// As fontes ficam dentro do projeto (pasta fontes/, com a licença de cada uma) em vez de vir
+// do next/font/google: o Google às vezes devolve a Oswald num endereço que o Turbopack não
+// consegue ler, e aí o site nem compila. Assim também roda sem internet.
+// Cada arquivo é a versão variável da fonte (todos os pesos num arquivo só), só com o
+// alfabeto latino; o weight é a faixa de pesos que o arquivo cobre.
+const bodoni = localFont({ src: "./fontes/bodoni-moda.woff2", weight: "400 900", variable: "--fonte-bodoni" });
+const oswald = localFont({ src: "./fontes/oswald.woff2", weight: "200 700", variable: "--fonte-oswald" });
+const karla = localFont({ src: "./fontes/karla.woff2", weight: "200 800", variable: "--fonte-karla" });
 
 export const metadata: Metadata = {
   title: "Barbearia Dom Alfredo",
