@@ -80,8 +80,14 @@ function EscolherLogo({ logo }: { logo: ReturnType<typeof useFotoDePerfil> }) {
       <div className="flex flex-col gap-1.5">
         <span className="text-[14px] text-tinta">Logo da barbearia</span>
         <span className="max-w-75 text-[12.5px] leading-normal text-tinta-fraca">
-          Aparece no menu, do lado do nome. PNG com fundo transparente fica melhor. Clique na moldura para
-          escolher.
+          Aparece no menu, do lado do nome. Clique na moldura para escolher.
+        </span>
+        {/* No menu a logo tem no máximo 40 px de altura e uns 52 px de largura do lado do nome
+            (MenuLateral: w-56, px-6, gap-3, nome min-w-28); o dobro deixa nítida em tela de alta resolução. */}
+        <span className="max-w-75 text-[12.5px] leading-normal text-tinta-fraca">
+          <strong className="font-semibold text-tinta">Tamanho ideal: 80 × 80 pixels</strong> (quadrada), em PNG
+          com fundo transparente. Fundo branco aparece como um quadrado branco no menu. Logo larga também serve
+          (até 350 × 80 pixels), mas aí o nome desce pra linha de baixo.
         </span>
         {logo.naTela && (
           <button
