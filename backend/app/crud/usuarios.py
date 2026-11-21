@@ -145,6 +145,13 @@ def atualizar_recepcionista(sessao: Session, usuario: Usuario, menus: list[str] 
     return usuario
 
 
+def excluir_recepcionista(sessao: Session, usuario: Usuario) -> None:
+    """Apaga a recepcionista de vez; as sessões dela vão junto (apago na mão: o SQLite dos testes não faz o CASCADE)."""
+    sessao.execute(delete(Sessao).where(Sessao.usuario_id == usuario.id))
+    sessao.delete(usuario)
+    sessao.commit()
+
+
 def redefinir_senha(sessao: Session, usuario: Usuario, senha_nova: str) -> None:
     """O admin define uma senha nova pra recepcionista; as sessões dela caem."""
     trocar_senha(sessao, usuario, senha_nova)

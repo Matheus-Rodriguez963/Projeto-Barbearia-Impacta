@@ -73,6 +73,10 @@ export default function PaginaAcessos() {
     setLista((atual) => (atual ?? []).map((r) => (r.id === nova.id ? nova : r)));
   }
 
+  function tirar(id: number) {
+    setLista((atual) => (atual ?? []).filter((r) => r.id !== id));
+  }
+
   return (
     <>
       <Topo migalhas={["Acessos"]} />
@@ -152,7 +156,7 @@ export default function PaginaAcessos() {
         {lista && lista.length > 0 && (
           <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
             {lista.map((r) => (
-              <LinhaDeRecepcionista key={r.id} recepcionista={r} aoMudar={substituir} />
+              <LinhaDeRecepcionista key={r.id} recepcionista={r} aoMudar={substituir} aoExcluir={tirar} />
             ))}
           </ul>
         )}

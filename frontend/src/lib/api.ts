@@ -340,6 +340,10 @@ export function atualizarRecepcionista(id: number, dados: { menus?: Menu[]; ativ
   return requisitar<Recepcionista>(`/api/usuarios/${id}`, { method: "PUT", body: JSON.stringify(dados) });
 }
 
+export function excluirRecepcionista(id: number) {
+  return requisitar<void>(`/api/usuarios/${id}`, { method: "DELETE" });
+}
+
 export function trocarSenhaDaRecepcionista(id: number, senhaNova: string) {
   return requisitar<void>(`/api/usuarios/${id}/senha`, {
     method: "PUT",

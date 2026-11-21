@@ -1,4 +1,4 @@
-"""Rotas do admin pra cuidar das recepcionistas: criar, liberar menus, bloquear e trocar a senha."""
+"""Rotas do admin pra cuidar das recepcionistas: criar, liberar menus, bloquear, excluir e trocar a senha."""
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
@@ -33,6 +33,13 @@ def criar(dados: RecepcionistaCriar, sessao: Session = Depends(pegar_sessao)):
 def editar(usuario_id: int, dados: RecepcionistaAtualizar, sessao: Session = Depends(pegar_sessao)):
     usuario = _pegar_recepcionista_ou_404(usuario_id, sessao)
     return crud.atualizar_recepcionista(sessao, usuario, dados.menus, dados.ativo)
+
+
+@roteador.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Excluir uma recepcionista")
+def excluir(usuario_id: int, sessao: Session = Depends(pegar_sessao)):
+    usuario = _pegar_recepcionista_ou_404(usuario_id, sessao)
+    crud.excluir_recepcionista(sessao, usuario)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @roteador.put("/{usuario_id}/senha", status_code=status.HTTP_204_NO_CONTENT, summary="Definir uma senha nova pra ela")

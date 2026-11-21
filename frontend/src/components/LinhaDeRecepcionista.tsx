@@ -1,25 +1,52 @@
 "use client";
 
 // Uma recepcionista na tela de Acessos: situação, menus liberados (cada caixinha salva na hora),
-// aprovar/recusar e troca de senha.
+// aprovar/recusar, troca de senha e a lixeira (exclui de vez quem saiu da empresa).
 
 import { useState } from "react";
 
 import Botao from "@/components/Botao";
 import { classeInputComErro } from "@/components/Campo";
 import Opcao from "@/components/Opcao";
-import { atualizarRecepcionista, lerErroDoFormulario, trocarSenhaDaRecepcionista } from "@/lib/api";
+import {
+  atualizarRecepcionista,
+  excluirRecepcionista,
+  lerErroDoFormulario,
+  trocarSenhaDaRecepcionista,
+} from "@/lib/api";
 import { MENUS, type Menu, type Recepcionista } from "@/lib/tipos";
 
 interface Props {
   recepcionista: Recepcionista;
   aoMudar: (nova: Recepcionista) => void;
+  aoExcluir: (id: number) => void;
 }
 
-export default function LinhaDeRecepcionista({ recepcionista, aoMudar }: Props) {
+function IconeLixeira() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export default function LinhaDeRecepcionista({ recepcionista, aoMudar, aoExcluir }: Props) {
   const [ocupada, setOcupada] = useState(false);
   const [erro, setErro] = useState("");
   const [recusando, setRecusando] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+
+  async function excluir() {
+    setOcupada(true);
+    setErro("");
+    try {
+      await excluirRecepcionista(recepcionista.id);
+      aoExcluir(recepcionista.id);
+    } catch (problema) {
+      setErro(lerErroDoFormulario(problema).aviso);
+      setOcupada(false);
+    }
+  }
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [senhaNova, setSenhaNova] = useState("");
   const [erroDaSenha, setErroDaSenha] = useState("");
@@ -88,7 +115,14 @@ export default function LinhaDeRecepcionista({ recepcionista, aoMudar }: Props) 
             Trocar senha
           </Botao>
           {recepcionista.ativo ? (
-            <Botao type="button" disabled={ocupada} onClick={() => setRecusando(true)}>
+            <Botao
+              type="button"
+              disabled={ocupada}
+              onClick={() => {
+                setRecusando(true);
+                setExcluindo(false);
+              }}
+            >
               Recusar
             </Botao>
           ) : (
@@ -96,6 +130,19 @@ export default function LinhaDeRecepcionista({ recepcionista, aoMudar }: Props) 
               Aprovar
             </Botao>
           )}
+          <Botao
+            type="button"
+            disabled={ocupada}
+            title="Excluir acesso"
+            aria-label={`Excluir o acesso de ${recepcionista.login}`}
+            className="px-4 hover:border-erro! hover:text-erro!"
+            onClick={() => {
+              setExcluindo(true);
+              setRecusando(false);
+            }}
+          >
+            <IconeLixeira />
+          </Botao>
         </div>
       </div>
 
@@ -130,6 +177,28 @@ export default function LinhaDeRecepcionista({ recepcionista, aoMudar }: Props) 
               }}
             >
               Sim, recusar
+            </Botao>
+          </div>
+        </div>
+      )}
+
+      {excluindo && (
+        <div className="flex flex-wrap items-center gap-3.5 border border-erro/40 bg-erro/5 px-4 py-3 text-[13px] text-tinta">
+          <span>
+            Excluir o acesso de <strong>{recepcionista.login}</strong> de vez? Ela é desconectada e o login some da
+            lista. Isso não dá pra desfazer.
+          </span>
+          <div className="ml-auto flex gap-3">
+            <Botao type="button" onClick={() => setExcluindo(false)}>
+              Voltar
+            </Botao>
+            <Botao
+              type="button"
+              disabled={ocupada}
+              className="border-erro/55! text-erro! hover:bg-erro/10"
+              onClick={() => void excluir()}
+            >
+              Sim, excluir
             </Botao>
           </div>
         </div>

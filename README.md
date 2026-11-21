@@ -187,8 +187,9 @@ enxergava a agenda e os clientes da barbearia. Agora tem o **administrador**, qu
   volta pra primeira que ela pode abrir.
 - **Acessos** (`/acessos`, só do admin): criar recepcionista (login, senha e os menus), marcar ou
   desmarcar os menus de cada uma (vale na hora), **Recusar** (bloqueia, com uma confirmação antes)
-  e **Aprovar** (libera de novo) e **Trocar senha** (o admin define uma nova pra ela, sem precisar
-  da antiga).
+  e **Aprovar** (libera de novo), **Trocar senha** (o admin define uma nova pra ela, sem precisar
+  da antiga) e a **lixeira**, que exclui de vez o acesso de quem saiu da empresa (com confirmação;
+  ela cai na hora e o login fica livre pra ser usado de novo).
 - **Trocar senha** (`/senha`): pede a senha atual e a nova duas vezes.
 
 **As regras**
@@ -206,8 +207,8 @@ enxergava a agenda e os clientes da barbearia. Agora tem o **administrador**, qu
   `aparencia`. Só `/`, `/docs` e o login ficam abertos de verdade.
 - **Sem permissão:** sem sessão a API responde `401` ("Faça login para continuar."); com sessão
   mas sem o menu, `403` ("Você não tem acesso a este menu.").
-- **Bloquear derruba a sessão:** quando o admin recusa uma recepcionista, ou define uma senha nova
-  pra ela, as sessões abertas dela são apagadas. Na próxima ação ela já cai pro login.
+- **Bloquear derruba a sessão:** quando o admin recusa, exclui ou define uma senha nova pra uma
+  recepcionista, as sessões abertas dela são apagadas. Na próxima ação ela já cai pro login.
 - A sessão dura **12 horas**.
 
 **Como foi feito**
@@ -230,8 +231,8 @@ enxergava a agenda e os clientes da barbearia. Agora tem o **administrador**, qu
   `routers/acesso.py` (o login) e `routers/usuarios.py` (a gestão, só do admin).
 - **Front-end:** as páginas `app/login`, `app/senha` e `app/acessos`, e o menu lateral que se
   monta conforme o que o usuário pode abrir. Uma resposta `401` leva pro login.
-- **Testes:** 34 testes novos (18 em `tests/test_acesso.py` e 16 em `tests/test_usuarios.py`); a
-  suíte inteira tem 187.
+- **Testes:** 37 testes novos (18 em `tests/test_acesso.py` e 19 em `tests/test_usuarios.py`); a
+  suíte inteira tem 195.
 
 ### Etapa 5 — aparência (white label)
 
@@ -658,7 +659,7 @@ tests/test_historico.py ..............                                   [ 81%]
 tests/test_usuarios.py ................                                  [ 89%]
 tests/test_validadores.py ...................                            [100%]
 
-======================= 187 passed in 68.83s (0:01:08) =======================
+======================= 195 passed in 69.80s (0:01:09) =======================
 ```
 
 Para ver o nome de cada teste, `pytest -v`.
@@ -668,7 +669,7 @@ Para ver o nome de cada teste, `pytest -v`.
 | Arquivo | Testes | O que verifica |
 |---|---|---|
 | `test_acesso.py` | 18 | O login: senha certa e errada, maiúscula e espaço no login, login inexistente, acesso bloqueado (403), cookie inválido e sessão vencida (401), sair, trocar a própria senha e o scrypt (o token e a senha não ficam no banco em texto) |
-| `test_usuarios.py` | 16 | A gestão das recepcionistas pelo admin e as permissões: criar, login repetido (409), menu inválido, o 401 sem login e o 403 sem o menu em cada área, bloquear derrubando a sessão, o admin que não se edita pela tela, senha nova e menus que valem na hora |
+| `test_usuarios.py` | 19 | A gestão das recepcionistas pelo admin e as permissões: criar, login repetido (409), menu inválido, o 401 sem login e o 403 sem o menu em cada área, bloquear derrubando a sessão, excluir (a sessão cai e o login fica livre), o admin que não se edita nem se exclui pela tela, senha nova e menus que valem na hora |
 | `test_aparencia.py` | 12 | As 5 rotas da aparência: o padrão na primeira leitura, editar só o que foi enviado, a linha de cima vazia, tema inválido e nome vazio ou longo (422), e enviar, ver e tirar a logo (SVG recusado com 415, mais de 2 MB com 413 e arquivo vazio com 422) |
 | `test_historico.py` | 14 | As 2 rotas do histórico: só o concluído entra na conta, o preço combinado na marcação, os filtros, o mês sem atendimento, o ranking de serviços e os pares cliente e barbeiro |
 | `test_validadores.py` | 19 | Os dígitos verificadores do CPF, os DDDs que existem, o nono dígito do celular e as máscaras |
@@ -823,7 +824,7 @@ e a conferência com `hmac.compare_digest`. É um hash feito de propósito pra s
 `requirements.txt` continua igual.
 
 **Bloquear derruba a sessão.**
-Quando o admin recusa uma recepcionista ou define uma senha nova pra ela, as sessões abertas dela
+Quando o admin recusa, exclui ou define uma senha nova pra uma recepcionista, as sessões abertas dela
 são apagadas. Se só marcasse "bloqueada", ela continuaria usando o sistema até o cookie vencer.
 
 **A API confere a permissão, não só o menu.**
@@ -1169,6 +1170,7 @@ Base: `http://localhost:8000`
 | `POST` | `/api/usuarios` | Cria uma recepcionista (`login`, `senha` e `menus`) |
 | `PUT` | `/api/usuarios/{id}` | Muda os `menus` e/ou o `ativo` (falso bloqueia e derruba a sessão) |
 | `PUT` | `/api/usuarios/{id}/senha` | Define uma senha nova pra ela (`senha_nova`) e derruba a sessão |
+| `DELETE` | `/api/usuarios/{id}` | Exclui a recepcionista de vez, junto com as sessões dela |
 
 Quase todas as rotas dos blocos anteriores exigem login. Com o `curl`, guarde o cookie:
 

@@ -141,3 +141,27 @@ def test_mudar_menus_vale_na_hora(maria, cliente_api):
     cliente_api.put(f"/api/usuarios/{maria['id']}", json={"menus": ["clientes"]})
     assert maria["cliente"].get(f"/api/agendamentos?data={DATA}").status_code == 403
     assert maria["cliente"].get("/api/eu").json()["menus"] == ["clientes"]
+
+
+def test_excluir_recepcionista(maria, cliente_api, cliente_anonimo):
+    assert cliente_api.delete(f"/api/usuarios/{maria['id']}").status_code == 204
+
+    assert maria["cliente"].get("/api/eu").status_code == 401  # sessão dela caiu junto
+    assert cliente_anonimo.post("/api/login", json={"login": "maria", "senha": "abcd"}).status_code == 401
+    assert cliente_api.get("/api/usuarios").json() == []
+    assert cliente_api.delete(f"/api/usuarios/{maria['id']}").status_code == 404
+
+    # o login fica livre pra ser usado de novo
+    assert cliente_api.post("/api/usuarios", json={"login": "maria", "senha": "wxyz", "menus": []}).status_code == 201
+
+
+def test_admin_nao_excluivel(cliente_api):
+    id_do_admin = cliente_api.get("/api/eu").json()["id"]
+    resposta = cliente_api.delete(f"/api/usuarios/{id_do_admin}")
+    assert resposta.status_code == 404
+    assert resposta.json()["detail"] == "Recepcionista não encontrada."
+    assert cliente_api.get("/api/eu").status_code == 200
+
+
+def test_excluir_so_admin(maria):
+    assert maria["cliente"].delete(f"/api/usuarios/{maria['id']}").status_code == 403

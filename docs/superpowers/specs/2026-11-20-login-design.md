@@ -20,7 +20,8 @@ quem tem login e senha, e que a recepcionista veja só os menus que o dono liber
 - Esconder o menu não basta: **a API também recusa** quem não tem o menu (403), senão dava pra
   ver os dados pelo endereço direto.
 - Sem e-mail, "esqueci minha senha", cadastro pela própria recepcionista, vários admins,
-  apagar usuário (bloquear resolve), limite de tentativas de login.
+  limite de tentativas de login. (Apagar usuário ficou de fora no começo; depois o usuário pediu
+  a lixeira pra excluir quem saiu da empresa: `DELETE /api/usuarios/{id}`, só recepcionista.)
 - Nenhuma tela existente muda de estrutura; fontes e cores seguem a Aparência.
 
 ## Abordagens consideradas
